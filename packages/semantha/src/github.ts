@@ -35,7 +35,11 @@ export interface GithubCommit {
   sha: string
   message: string
   body: string
-  files: string[]
+  files: GithubFile[]
+}
+
+export interface GithubFile {
+  filename: string
 }
 
 /**
@@ -116,7 +120,7 @@ export async function getCommitsSinceLastRelease(
         sha: res.data.sha,
         message: res.data.commit.message,
         body: res.data.commit.message,
-        files: res.data.files.map(file => file.filename),
+        files: res.data.files,
       }))
   }
 }
