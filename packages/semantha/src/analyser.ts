@@ -2,7 +2,7 @@ import { Workspace } from './workspaces'
 import { GithubCommit } from './github'
 
 export interface Release {
-  status: 'major' | 'minor' | 'patch'
+  status: 'major' | 'minor' | 'patch' | 'ignore'
   workspace: Workspace
   commits: GithubCommit[]
 }
@@ -24,12 +24,13 @@ export function analyzeCommits(
     findWorkspaceImpactingCommits(workspace),
   )
 
-  /** Calculate next version from commits */
+  /** Calculate next version from commit messages */
   const releasesFromCommitMessages = workspacesWithImpactingCommits.map(
     workspaceWitnImpactingCommits =>
       analyseCommitMessages(workspaceWitnImpactingCommits),
   )
 
+  /** Accounts for changes in peer dependencies */
   const releasesFromDependencies = releasesFromCommitMessages.map(
     releaseFromCommitMessages =>
       analyseDependecyVersioning(
@@ -72,8 +73,10 @@ export function analyzeCommits(
     workspace: Workspace
     commits: GithubCommit[]
   }): Release {
+    const status = analyseCommits(commits)
+
     return {
-      status: 'major',
+      status: status,
       workspace: workspace,
       commits: commits,
     }
@@ -95,4 +98,47 @@ export function analyzeCommits(
       commits: release.commits,
     }
   }
+}
+
+/** Taken from semantic-release/commit-analyser */
+const releaseRules = [
+  { breaking: true, release: 'major' },
+  { revert: true, release: 'patch' },
+  // Angular
+  { type: 'feat', release: 'minor' },
+  { type: 'fix', release: 'patch' },
+  { type: 'perf', release: 'patch' },
+  // Atom
+  { emoji: ':racehorse:', release: 'patch' },
+  { emoji: ':bug:', release: 'patch' },
+  { emoji: ':penguin:', release: 'patch' },
+  { emoji: ':apple:', release: 'patch' },
+  { emoji: ':checkered_flag:', release: 'patch' },
+  // Ember
+  { tag: 'BUGFIX', release: 'patch' },
+  { tag: 'FEATURE', release: 'minor' },
+  { tag: 'SECURITY', release: 'patch' },
+  // ESLint
+  { tag: 'Breaking', release: 'major' },
+  { tag: 'Fix', release: 'patch' },
+  { tag: 'Update', release: 'minor' },
+  { tag: 'New', release: 'minor' },
+  // Express
+  { component: 'perf', release: 'patch' },
+  { component: 'deps', release: 'patch' },
+  // JSHint
+  { type: 'FEAT', release: 'minor' },
+  { type: 'FIX', release: 'patch' },
+]
+
+/**
+ *
+ * Analyses commits using commit messages.
+ *
+ * @param commits
+ */
+function analyseCommits(
+  commits: GithubCommit[],
+): 'major' | 'minor' | 'patch' | 'ignore' {
+  return 'major'
 }
