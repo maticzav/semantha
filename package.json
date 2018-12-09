@@ -1,0 +1,14 @@
+{
+  "name": "semantha",
+  "private": true,
+  "scripts": {},
+  "devDependencies": {
+    "codecov": "^3.1.0",
+    "husky": "^1.2.0",
+    "prettier": "^1.15.3",
+    "pretty-quick": "^1.8.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

@@ -1,0 +1,24 @@
+coverage:
+  status:
+    project:
+      default: off
+      semantha:
+        target: 100%
+        flags: semantha
+      semantha-commit-analyser:
+        target: 100%
+        flags: semantha-commit-analyser
+      semantha-npm:
+        target: 100%
+        flags: semantha-npm
+
+flags:
+  semantha:
+    paths:
+      - packages/semantha/
+  semantha-commit-analyser:
+    paths:
+      - packages/semantha-commit-analyser/
+  semantha-npm:
+    paths:
+      - packages/semantha-npm/

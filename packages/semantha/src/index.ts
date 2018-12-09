@@ -1,0 +1,1 @@
+export { semantha } from './semantha'

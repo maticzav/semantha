@@ -1,0 +1,35 @@
+{
+  "name": "semantha",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "repository": "https://github.com/maticzav/semantha.git",
+  "scripts": {
+    "clean": "rimraf dist",
+    "dev": "ts-node src/index.ts",
+    "test": "NODE_ENV=test jest",
+    "build": "tsc -d",
+    "prepublish": "npm-run-all build"
+  },
+  "dependencies": {
+    "@octokit/rest": "^16.1.0",
+    "globby": "^8.0.1",
+    "parse-github-url": "^1.0.2",
+    "read-pkg": "^4.0.1",
+    "semver": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/globby": "^8.0.0",
+    "@types/jest": "^23.3.10",
+    "@types/parse-github-url": "^1.0.0",
+    "@types/semver": "^5.5.0",
+    "jest": "^23.6.0",
+    "npm-run-all": "^4.1.5",
+    "ts-jest": "^23.10.5",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.17.0",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.2.2"
+  },
+  "license": "MIT"
+}
