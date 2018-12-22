@@ -1,0 +1,8 @@
+{
+  "name": "config-invalid",
+  "repository": "faulty repo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

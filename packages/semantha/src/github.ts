@@ -1,34 +1,8 @@
-import * as parseGithubUrl from 'parse-github-url'
 import * as Octokit from '@octokit/rest'
 
 export interface GithubRepository {
   owner: string
   repo: string
-}
-
-/**
- *
- * Obtains repository information from repository URL.
- *
- * @param url
- */
-export function getRepositoryFromURL(
-  url: string,
-): { status: 'ok'; repo: GithubRepository } | { status: 'err' } {
-  try {
-    const repository = parseGithubUrl(url)
-
-    if (repository && repository.owner && repository.repo) {
-      return {
-        status: 'ok',
-        repo: { owner: repository.owner, repo: repository.repo },
-      }
-    } else {
-      return { status: 'err' }
-    }
-  } catch (err) {
-    return { status: 'err' }
-  }
 }
 
 export interface GithubCommit {
@@ -62,7 +36,7 @@ export async function getCommitsSinceLastRelease(
   })
 
   /** Gathers commits since latest release */
-  const commits = await getCommits()
+  const commits = await getCommitsSince(release.data.published_at)
 
   /** Hydrate commit information */
   const hydratedCommits = Promise.all(
@@ -80,12 +54,13 @@ export async function getCommitsSinceLastRelease(
    *
    * @param page
    */
-  async function getCommits(
+  async function getCommitsSince(
+    since: string,
     page: number = 1,
   ): Promise<Octokit.ReposListCommitsResponseItem[]> {
     return github.repos
       .listCommits({
-        since: release.data.published_at,
+        since: since,
         owner: repository.owner,
         repo: repository.repo,
         page: page,
@@ -96,7 +71,7 @@ export async function getCommitsSinceLastRelease(
         if (res.data.length < size) {
           return res.data
         } else {
-          const remainingCommits = await getCommits(page + 1)
+          const remainingCommits = await getCommitsSince(since, page + 1)
 
           return [...res.data, ...remainingCommits]
         }
@@ -123,4 +98,31 @@ export async function getCommitsSinceLastRelease(
         files: res.data.files,
       }))
   }
+}
+
+/**
+ *
+ * Obtains the head of the remote repository.
+ *
+ * @param github
+ * @param repository
+ * @param branch
+ */
+export async function getRepositoryBranchRemoteHead(
+  github: Octokit,
+  repository: GithubRepository,
+  branch: string,
+): Promise<string | null> {
+  return github.repos
+    .getBranch({
+      owner: repository.owner,
+      repo: repository.repo,
+      branch: branch,
+    })
+    .then(res => {
+      if (res.status === 200) {
+        return res.data.commit.sha
+      }
+      return null
+    })
 }

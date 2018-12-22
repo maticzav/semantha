@@ -1,0 +1,8 @@
+{
+  "name": "config-valid",
+  "repository": "https://github.com/maticzav/semantha",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

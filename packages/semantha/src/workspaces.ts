@@ -1,4 +1,4 @@
-import * as globby from 'globby'
+import globby from 'globby'
 import readPkg, { Package } from 'read-pkg'
 
 export interface Workspace {
@@ -13,7 +13,7 @@ export interface Workspace {
  * @param patterns
  * @param cwd
  */
-export async function getAllWorkspacesForPaths(
+export async function findAllWorkspacesForPaths(
   patterns: string[],
   cwd: string,
 ): Promise<
@@ -25,6 +25,7 @@ export async function getAllWorkspacesForPaths(
       cwd: cwd,
       onlyDirectories: true,
       gitignore: true,
+      absolute: true,
     })
 
     /** Hydrate workspaces */

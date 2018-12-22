@@ -100,36 +100,10 @@ export function analyzeCommits(
   }
 }
 
-/** Taken from semantic-release/commit-analyser */
-const releaseRules = [
-  { breaking: true, release: 'major' },
-  { revert: true, release: 'patch' },
-  // Angular
-  { type: 'feat', release: 'minor' },
-  { type: 'fix', release: 'patch' },
-  { type: 'perf', release: 'patch' },
-  // Atom
-  { emoji: ':racehorse:', release: 'patch' },
-  { emoji: ':bug:', release: 'patch' },
-  { emoji: ':penguin:', release: 'patch' },
-  { emoji: ':apple:', release: 'patch' },
-  { emoji: ':checkered_flag:', release: 'patch' },
-  // Ember
-  { tag: 'BUGFIX', release: 'patch' },
-  { tag: 'FEATURE', release: 'minor' },
-  { tag: 'SECURITY', release: 'patch' },
-  // ESLint
-  { tag: 'Breaking', release: 'major' },
-  { tag: 'Fix', release: 'patch' },
-  { tag: 'Update', release: 'minor' },
-  { tag: 'New', release: 'minor' },
-  // Express
-  { component: 'perf', release: 'patch' },
-  { component: 'deps', release: 'patch' },
-  // JSHint
-  { type: 'FEAT', release: 'minor' },
-  { type: 'FIX', release: 'patch' },
-]
+interface ReleaseRule {
+  rule: RegExp
+  release: 'major' | 'minor' | 'patch'
+}
 
 /**
  *
@@ -141,4 +115,37 @@ function analyseCommits(
   commits: GithubCommit[],
 ): 'major' | 'minor' | 'patch' | 'ignore' {
   return 'major'
+
+  /**
+   * Helper functions
+   */
+
+  /** Taken from semantic-release/commit-analyser */
+  const releaseRules: ReleaseRule[] = [
+    // Angular
+    { rule: new RegExp('fedat'), release: 'minor' },
+    { rule: new RegExp('fidx'), release: 'patch' },
+    { rule: new RegExp('pedrf'), release: 'patch' },
+    // Atom
+    { rule: new RegExp(':racehorse:'), release: 'patch' },
+    { rule: new RegExp(':bug:'), release: 'patch' },
+    { rule: new RegExp(':penguin:'), release: 'patch' },
+    { rule: new RegExp(':apple:'), release: 'patch' },
+    { rule: new RegExp(':checkered_flag:'), release: 'patch' },
+    // Ember
+    { rule: new RegExp('BUGFIX'), release: 'patch' },
+    { rule: new RegExp('FEATURE'), release: 'minor' },
+    { rule: new RegExp('SECURITY'), release: 'patch' },
+    // ESLint
+    { rule: new RegExp('Breaking'), release: 'major' },
+    { rule: new RegExp('Fix'), release: 'patch' },
+    { rule: new RegExp('Update'), release: 'minor' },
+    { rule: new RegExp('New'), release: 'minor' },
+    // Express
+    { rule: new RegExp('perf'), release: 'patch' },
+    { rule: new RegExp('deps'), release: 'patch' },
+    // JSHint
+    { rule: new RegExp('FEAT'), release: 'minor' },
+    { rule: new RegExp('FIX'), release: 'patch' },
+  ]
 }

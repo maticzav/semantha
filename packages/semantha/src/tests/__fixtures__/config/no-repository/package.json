@@ -1,0 +1,7 @@
+{
+  "name": "config-missing-repo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

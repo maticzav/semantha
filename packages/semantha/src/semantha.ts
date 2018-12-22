@@ -1,31 +1,35 @@
-import readPkg from 'read-pkg'
-import {
-  getCommitsSinceLastRelease,
-  getRepositoryFromURL,
-  GithubRepository,
-} from './github'
-import { analyzeCommits } from './analyser'
-import { Workspace, getAllWorkspacesForPaths } from './workspaces'
+import Octokit from '@octokit/rest'
+import { getCommitsSinceLastRelease, GithubCommit } from './github'
+import { analyzeCommits, Release } from './analyser'
+import { getConfigurationFrom, Configuration } from './config'
+import { publishWorkspacesToNPM } from './npm'
 
 export interface Options {
   cwd: string
+  dryrun: boolean
+}
+
+export interface Report {
+  configuration: Configuration
+  commits: GithubCommit[]
+  changes: Release[]
+  release: any
 }
 
 /**
  *
- * Executes release in a particular folder.
+ * Executes semantic release in a particular folder.
  *
  * @param options
  */
 export async function semantha(
   options: Options,
 ): Promise<
-  { status: 'ok'; message: string } | { status: 'err'; message: string }
+  { status: 'ok'; report: Report } | { status: 'err'; message: string }
 > {
-  // TODO: is local up to date
+  /* Semantha configuration */
 
-  /** Obtains Semantha configuration */
-  const configuration = await getConfiguration()
+  const configuration = await getConfigurationFrom(options.cwd)
 
   if (configuration.status === 'err') {
     return {
@@ -34,75 +38,41 @@ export async function semantha(
     }
   }
 
-  /** Fetches all commits from last release */
+  /* Github */
+
+  const client = new Octokit()
+
+  client.authenticate({
+    type: 'token',
+    token: 'token',
+  })
+
+  /* Verify local version */
+
+  // TODO:
+
+  /** Fetch commits from last release */
+
   const commits = await getCommitsSinceLastRelease(
-    {} as any,
-    configuration.repository,
+    client,
+    configuration.config.repository,
   )
 
   /** Analyzes commits */
-  const changes = await analyzeCommits(configuration.workspaces, commits)
+
+  const changes = await analyzeCommits(configuration.config.workspaces, commits)
+
+  /* Publish */
+
+  const release = await publishWorkspacesToNPM(changes)
 
   return {
     status: 'ok',
-    message: '',
-  }
-
-  /**
-   * Helper functions
-   */
-  /**
-   *
-   * Finds Semantha configuration in a particular cwd.
-   *
-   * @param cwd
-   */
-  async function getConfiguration(): Promise<
-    | {
-        status: 'ok'
-        repository: GithubRepository
-        workspaces: Workspace[]
-      }
-    | { status: 'err'; message: string }
-  > {
-    try {
-      /** Finds package.json file of workspaces */
-      const pkg = await readPkg({ cwd: process.cwd(), normalize: true })
-
-      if (!pkg.repository || !pkg.repository.url || !pkg.workspaces) {
-        return {
-          status: 'err',
-          message:
-            'Missing workspaces or repository definition in package.json',
-        }
-      }
-
-      /** Parses information */
-      const repository = getRepositoryFromURL(pkg.repository.url)
-
-      if (repository.status === 'err') {
-        return {
-          status: 'err',
-          message: "Something's wrong with your repository definition.",
-        }
-      }
-
-      const workspaces = await getAllWorkspacesForPaths(
-        pkg.workspaces,
-        process.cwd(),
-      )
-
-      if (workspaces.status === 'err') {
-        return { status: 'err', message: workspaces.message }
-      }
-
-      return {
-        status: 'ok',
-        repository: repository.repo,
-        workspaces: workspaces.workspaces,
-      }
-    } catch (err) {
-      return { status: 'err', message: err.message }
-    }
+    report: {
+      configuration: configuration.config,
+      commits: commits,
+      changes: changes,
+      release: release,
+    },
   }
 }

@@ -1,9 +1,11 @@
 import readPkg from 'read-pkg'
-import { getRepositoryFromURL, GithubRepository } from './github'
+import parseGithubUrl from 'parse-github-url'
+import { GithubRepository } from './github'
+import { Workspace, findAllWorkspacesForPaths } from './workspaces'
 
 export interface Configuration {
   repository: GithubRepository
-  workspaces: string[]
+  workspaces: Workspace[]
 }
 
 /**
@@ -12,11 +14,9 @@ export interface Configuration {
  *
  * @param cwd
  */
-export async function getConfiguration({
-  cwd,
-}: {
-  cwd: string
-}): Promise<
+export async function getConfigurationFrom(
+  cwd: string,
+): Promise<
   { status: 'ok'; config: Configuration } | { status: 'err'; message: string }
 > {
   try {
@@ -30,8 +30,9 @@ export async function getConfiguration({
       }
     }
 
-    /** Parses information */
-    const repository = getRepositoryFromURL(pkg.repository)
+    /** Determines repository */
+
+    const repository = getRepositoryFromURL(pkg.repository.url)
 
     if (repository.status === 'err') {
       return {
@@ -40,14 +41,45 @@ export async function getConfiguration({
       }
     }
 
+    /* Finds workspaces */
+
+    const workspaces = await findAllWorkspacesForPaths(pkg.workspaces, cwd)
+
+    if (workspaces.status === 'err') {
+      return { status: 'err', message: workspaces.message }
+    }
+
     return {
       status: 'ok',
       config: {
         repository: repository.repo,
-        workspaces: pkg.workspaces,
+        workspaces: workspaces.workspaces,
       },
     }
   } catch (err) {
     return { status: 'err', message: err.message }
+  }
+
+  /* Helper functions */
+
+  /**
+   *
+   * Obtains repository information from repository URL.
+   *
+   * @param url
+   */
+  function getRepositoryFromURL(
+    url: string,
+  ): { status: 'ok'; repo: GithubRepository } | { status: 'err' } {
+    const repository = parseGithubUrl(url)
+
+    if (repository && repository.owner && repository.repo) {
+      return {
+        status: 'ok',
+        repo: { owner: repository.owner, repo: repository.repo },
+      }
+    } else {
+      return { status: 'err' }
+    }
   }
 }
