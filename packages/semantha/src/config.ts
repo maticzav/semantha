@@ -1,11 +1,16 @@
-import readPkg from 'read-pkg'
+import globby from 'globby'
+import readPkg, { Package } from 'read-pkg'
 import parseGithubUrl from 'parse-github-url'
 import { GithubRepository } from './github'
-import { Workspace, findAllWorkspacesForPaths } from './workspaces'
 
 export interface Configuration {
   repository: GithubRepository
   workspaces: Workspace[]
+}
+
+export interface Workspace {
+  path: string
+  pkg: Package
 }
 
 /**
@@ -20,7 +25,7 @@ export async function getConfigurationFrom(
   { status: 'ok'; config: Configuration } | { status: 'err'; message: string }
 > {
   try {
-    /** Finds package.json file */
+    /** Find configuration package.json file */
     const pkg = await readPkg({ cwd: cwd, normalize: true })
 
     if (!pkg.repository || !pkg.workspaces) {
@@ -81,5 +86,49 @@ export async function getConfigurationFrom(
     } else {
       return { status: 'err' }
     }
+  }
+
+  /**
+   *
+   * Finds definitions for workspaces in specified cwd
+   *
+   * @param patterns
+   * @param cwd
+   */
+  async function findAllWorkspacesForPaths(
+    patterns: string[],
+    cwd: string,
+  ): Promise<
+    | { status: 'ok'; workspaces: Workspace[] }
+    | { status: 'err'; message: string }
+  > {
+    try {
+      /** Find all paths */
+      const paths = await globby(patterns, {
+        cwd: cwd,
+        onlyDirectories: true,
+        gitignore: true,
+        absolute: true,
+      })
+
+      /** Hydrate workspaces */
+      const workspaces = await Promise.all(paths.map(hydrateWorkspace))
+
+      return { status: 'ok', workspaces: workspaces }
+    } catch (err) {
+      return { status: 'err', message: err.message }
+    }
+  }
+
+  /**
+   *
+   * Hydrates workspace in a given path by obtaining its
+   * package.json definition.
+   *
+   * @param path
+   */
+  async function hydrateWorkspace(path: string): Promise<Workspace> {
+    const pkg = await readPkg({ cwd: path })
+    return { path, pkg }
   }
 }
