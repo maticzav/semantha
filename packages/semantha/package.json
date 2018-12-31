@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/globby": "8.0.0",
-    "@types/jest": "23.3.10",
+    "@types/jest": "23.3.11",
     "@types/parse-github-url": "1.0.0",
     "@types/semver": "5.5.0",
     "jest": "23.6.0",
