@@ -1,10 +1,9 @@
 import Octokit from '@octokit/rest'
 import {
-  // SemanthaRelease,
+  SemanthaRelease,
   SemanthaRule,
   getCommitsSinceLastRelease,
   analyzeCommits,
-  releaseWorkspace,
   constants,
 } from 'semantha-core'
 import { Configuration, getConfigurationFrom } from './config'
@@ -39,12 +38,10 @@ export async function manage(): Promise<
 
   client.authenticate({
     type: 'token',
-    token: 'token',
+    token: process.env.GITHUB_TOKEN!,
   })
 
   /* Verify local version */
-
-  // TODO:
 
   /** Fetch commits from last release */
 
@@ -53,7 +50,7 @@ export async function manage(): Promise<
     configuration.config.repository,
   )
 
-  /** Analyzes commits */
+  /* Analyzes commits */
 
   const releases = await analyzeCommits(
     configuration.config.workspaces,
@@ -61,17 +58,17 @@ export async function manage(): Promise<
     releaseRules,
   )
 
+  /* Version */
+
   /* Publish */
 
-  const releaseReports = await Promise.all(
-    releases.map(release => releaseWorkspace(release)),
-  )
+  /* Return report */
 
   return {
     status: 'ok',
     report: {
       configuration: configuration.config,
-      releases: releaseReports,
+      releases: releases,
     },
   }
 }

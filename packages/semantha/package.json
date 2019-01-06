@@ -15,7 +15,8 @@
     "meow": "^5.0.0",
     "parse-github-url": "^1.0.2",
     "read-pkg": "^4.0.1",
-    "semantha-core": "0.0.0"
+    "semantha-core": "0.0.0",
+    "write-pkg": "^3.2.0"
   },
   "devDependencies": {
     "@types/globby": "8.0.0",
