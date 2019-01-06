@@ -4,7 +4,7 @@ import { constants, SemanthaVersion } from './constants'
 import { filterMap } from './utils'
 
 export interface SemanthaRule {
-  rule: RegExp
+  regex: RegExp
   release: SemanthaVersion
 }
 
@@ -83,7 +83,7 @@ export function analyzeCommits(
   }): SemanthaRelease {
     const version = rules.reduce((acc, rule) => {
       if (
-        commits.some(commit => rule.rule.test(commit.message)) &&
+        commits.some(commit => rule.regex.test(commit.message)) &&
         rule.release > acc
       ) {
         return rule.release

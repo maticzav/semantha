@@ -8,7 +8,7 @@ describe('workspaces functions work correctly', () => {
 
     expect(workspace).toEqual({
       status: 'err',
-      message: '',
+      message: `ENOENT: no such file or directory, open '${workspacePath}/package.json'`,
     })
   })
 
@@ -18,7 +18,22 @@ describe('workspaces functions work correctly', () => {
 
     expect(workspace).toEqual({
       status: 'ok',
-      workspace: {},
+      workspace: {
+        path:
+          '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha-core/src/tests/__fixtures__/workspace',
+        pkg: {
+          _id: 'test-workspace@',
+          dependencies: {
+            something: '1.0.0',
+          },
+          devDependencies: {
+            devit: '1.0.0',
+          },
+          name: 'test-workspace',
+          readme: 'ERROR: No README data found!',
+          version: '',
+        },
+      },
     })
   })
 })
