@@ -1,33 +1,23 @@
 import Octokit from '@octokit/rest'
 import {
+  SemanthaRelease,
   getCommitsSinceLastRelease,
-  GithubCommit,
-} from '../../semantha-core/src/github'
-import { analyzeCommits, Release } from '../../semantha-core/src/analyser'
-import { getConfigurationFrom, Configuration } from './config'
-import { publishWorkspacesToNPM } from '../../semantha-core/src/publish'
-
-export interface Options {
-  cwd: string
-  dryrun: boolean
-}
+  analyzeCommits,
+  releaseWorkspace,
+} from 'semantha-core'
+import { Configuration } from './config'
 
 export interface Report {
   configuration: Configuration
-  commits: GithubCommit[]
-  changes: Release[]
-  release: any
+  releases: SemanthaRelease
 }
 
 /**
  *
- * Executes semantic release in a particular folder.
+ * Manager
  *
- * @param options
  */
-export async function semantha(
-  options: Options,
-): Promise<
+export async function manage(): Promise<
   { status: 'ok'; report: Report } | { status: 'err'; message: string }
 > {
   /* Semantha configuration */
@@ -63,19 +53,20 @@ export async function semantha(
 
   /** Analyzes commits */
 
-  const changes = await analyzeCommits(configuration.config.workspaces, commits)
+  const releases = await analyzeCommits(
+    configuration.config.workspaces,
+    commits,
+  )
 
   /* Publish */
 
-  const release = await publishWorkspacesToNPM(changes)
+  const releaseReports = await Promise.all(release => releaseWorkspace(release))
 
   return {
     status: 'ok',
     report: {
       configuration: configuration.config,
-      commits: commits,
-      changes: changes,
-      release: release,
+      releases: releaseReports,
     },
   }
 }

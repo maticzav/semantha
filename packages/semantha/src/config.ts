@@ -1,16 +1,11 @@
 import globby from 'globby'
-import readPkg, { Package } from 'read-pkg'
 import parseGithubUrl from 'parse-github-url'
-import { GithubRepository } from './github'
+import { sync as readPkg } from 'read-pkg'
+import { GithubRepository, Workspace, loadWorkspace } from 'semantha-core'
 
 export interface Configuration {
   repository: GithubRepository
   workspaces: Workspace[]
-}
-
-export interface Workspace {
-  path: string
-  pkg: Package
 }
 
 /**
@@ -26,7 +21,7 @@ export async function getConfigurationFrom(
 > {
   try {
     /** Find configuration package.json file */
-    const pkg = await readPkg({ cwd: cwd, normalize: true })
+    const pkg = readPkg({ cwd: cwd, normalize: true })
 
     if (!pkg.repository || !pkg.workspaces) {
       return {
@@ -112,23 +107,11 @@ export async function getConfigurationFrom(
       })
 
       /** Hydrate workspaces */
-      const workspaces = await Promise.all(paths.map(hydrateWorkspace))
+      const workspaces = await Promise.all(paths.map(loadWorkspace))
 
       return { status: 'ok', workspaces: workspaces }
     } catch (err) {
       return { status: 'err', message: err.message }
     }
-  }
-
-  /**
-   *
-   * Hydrates workspace in a given path by obtaining its
-   * package.json definition.
-   *
-   * @param path
-   */
-  async function hydrateWorkspace(path: string): Promise<Workspace> {
-    const pkg = await readPkg({ cwd: path })
-    return { path, pkg }
   }
 }
