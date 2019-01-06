@@ -1,5 +1,11 @@
 import { getCommitsSinceLastRelease, GithubRepository } from '../'
 
+import { createGithubRelease } from '../github'
+import { SemanthaRelease } from '../analyser'
+
+import * as release from '../release'
+import * as changelog from '../changelog'
+
 describe('github', () => {
   test('getCommitsSinceLatestRelease finds correct commits', async () => {
     /* Mocks */
@@ -73,5 +79,66 @@ describe('github', () => {
       sha: 'sha',
     })
     expect(git.repos.listCommits).toBeCalledTimes(2)
+  })
+
+  test('createGithubRelease correctly creates a Github release', async () => {
+    /* Mocks */
+    const releaseSpy = jest
+      .spyOn(release, 'getNextVersion')
+      .mockReturnValue('version')
+    const changelogSpy = jest
+      .spyOn(changelog, 'generateChangelog')
+      .mockReturnValue('changelog')
+
+    const git = {
+      repos: {
+        createRelease: jest.fn().mockReturnValue('pass'),
+      },
+    }
+
+    const repository: GithubRepository = {
+      repo: 'test-repo',
+      owner: 'test-owner',
+    }
+
+    const _release: SemanthaRelease = {
+      commits: [
+        {
+          body: '',
+          files: [{ filename: '/packages/package-c/package.json' }],
+          message: 'feat: Minor change package-c',
+          sha: '',
+        },
+      ],
+      version: 2,
+      workspace: {
+        path: '/packages/package-c',
+        pkg: {
+          _id: 'package-c@',
+          dependencies: { irrelavant: '1.0.0', 'package-d': '1.0.0' },
+          devDependencies: { irrelavantDev: '1.0.0' },
+          name: 'package-c',
+          readme: 'ERROR: No README data found!',
+          version: '1.0.0',
+        },
+      },
+    }
+
+    /* Execution */
+
+    const res = await createGithubRelease(git as any, repository, _release)
+
+    /* Tests */
+
+    expect(res).toBe('pass')
+    expect(releaseSpy).toBeCalledWith(_release)
+    expect(changelogSpy).toBeCalledWith(_release)
+    expect(git.repos.createRelease).toBeCalledWith({
+      owner: repository.owner,
+      repo: repository.repo,
+      name: `package-c@version`,
+      body: 'changelog',
+      tag_name: `package-c@version`,
+    })
   })
 })

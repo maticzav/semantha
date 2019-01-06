@@ -1,4 +1,7 @@
 import * as Octokit from '@octokit/rest'
+import { SemanthaRelease } from './analyser'
+import { getNextVersion } from './release'
+import { generateChangelog } from './changelog'
 
 export interface GithubRepository {
   owner: string
@@ -95,6 +98,32 @@ export async function getCommitsSinceLastRelease(
         files: res.data.files,
       }))
   }
+}
+
+/**
+ *
+ * Creates a Github release from SemanthaRelease
+ *
+ * @param github
+ * @param repository
+ * @param release
+ */
+export async function createGithubRelease(
+  github: Octokit,
+  repository: GithubRepository,
+  release: SemanthaRelease,
+): Promise<{}> {
+  const version = getNextVersion(release)
+  const tag = `${release.workspace.pkg.name}@${version}`
+  const changelog = generateChangelog(release)
+
+  return github.repos.createRelease({
+    owner: repository.owner,
+    repo: repository.repo,
+    name: tag,
+    body: changelog,
+    tag_name: tag,
+  })
 }
 
 // /**

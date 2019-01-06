@@ -1,3 +1,3 @@
-# semantha
+# Semantha
 
-> A delightful monorepo releasing assistant.
+> A delightful mono-repo releasing assistant.

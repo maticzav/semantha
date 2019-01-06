@@ -6,5 +6,5 @@ export {
   GithubCommit,
   GithubRepository,
 } from './github'
-export { publishWorkspace } from './publish'
+export { releaseWorkspace } from './release'
 export { loadWorkspace, Workspace } from './workspaces'
