@@ -1,8 +1,11 @@
 import Octokit from '@octokit/rest'
-import { getCommitsSinceLastRelease, GithubCommit } from './github'
-import { analyzeCommits, Release } from './analyser'
+import {
+  getCommitsSinceLastRelease,
+  GithubCommit,
+} from '../../semantha-core/src/github'
+import { analyzeCommits, Release } from '../../semantha-core/src/analyser'
 import { getConfigurationFrom, Configuration } from './config'
-import { publishWorkspacesToNPM } from './npm'
+import { publishWorkspacesToNPM } from '../../semantha-core/src/publish'
 
 export interface Options {
   cwd: string
