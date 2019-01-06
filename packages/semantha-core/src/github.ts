@@ -27,13 +27,8 @@ export async function getCommitsSinceLastRelease(
   github: Octokit,
   repository: GithubRepository,
 ): Promise<GithubCommit[]> {
-  const size = 100
-
   /** Finds the latest release. */
-  const release = await github.repos.getLatestRelease({
-    owner: repository.owner,
-    repo: repository.repo,
-  })
+  const release = await github.repos.getLatestRelease(repository)
 
   /** Gathers commits since latest release */
   const commits = await getCommitsSince(release.data.published_at)
@@ -58,6 +53,8 @@ export async function getCommitsSinceLastRelease(
     since: string,
     page: number = 1,
   ): Promise<Octokit.ReposListCommitsResponseItem[]> {
+    const size = 100
+
     return github.repos
       .listCommits({
         since: since,
@@ -100,29 +97,29 @@ export async function getCommitsSinceLastRelease(
   }
 }
 
-/**
- *
- * Obtains the head of the remote repository.
- *
- * @param github
- * @param repository
- * @param branch
- */
-export async function getRepositoryBranchRemoteHead(
-  github: Octokit,
-  repository: GithubRepository,
-  branch: string,
-): Promise<string | null> {
-  return github.repos
-    .getBranch({
-      owner: repository.owner,
-      repo: repository.repo,
-      branch: branch,
-    })
-    .then(res => {
-      if (res.status === 200) {
-        return res.data.commit.sha
-      }
-      return null
-    })
-}
+// /**
+//  *
+//  * Obtains the head of the remote repository.
+//  *
+//  * @param github
+//  * @param repository
+//  * @param branch
+//  */
+// export async function getRepositoryBranchRemoteHead(
+//   github: Octokit,
+//   repository: GithubRepository,
+//   branch: string,
+// ): Promise<string | null> {
+//   return github.repos
+//     .getBranch({
+//       owner: repository.owner,
+//       repo: repository.repo,
+//       branch: branch,
+//     })
+//     .then(res => {
+//       if (res.status === 200) {
+//         return res.data.commit.sha
+//       }
+//       return null
+//     })
+// }

@@ -140,7 +140,7 @@ export function analyzeCommits(
           return acc
         }
       } else {
-        /* Skip calculated dependencies. */
+        /* Break circular dependencies. */
         return acc
       }
     }, release.version)
