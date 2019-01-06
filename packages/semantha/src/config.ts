@@ -107,7 +107,13 @@ export async function getConfigurationFrom(
       })
 
       /** Hydrate workspaces */
-      const workspaces = await Promise.all(paths.map(loadWorkspace))
+      const workspaces = await Promise.all(
+        paths.map(path => {
+          const workspace = loadWorkspace(path)
+          if (workspace.status === 'ok') return workspace.workspace
+          else throw new Error(workspace.message)
+        }),
+      )
 
       return { status: 'ok', workspaces: workspaces }
     } catch (err) {

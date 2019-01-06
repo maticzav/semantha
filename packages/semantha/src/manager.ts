@@ -7,7 +7,7 @@ import {
   releaseWorkspace,
   constants,
 } from 'semantha-core'
-import { Configuration } from './config'
+import { Configuration, getConfigurationFrom } from './config'
 
 export interface Report {
   configuration: Configuration
@@ -58,11 +58,14 @@ export async function manage(): Promise<
   const releases = await analyzeCommits(
     configuration.config.workspaces,
     commits,
+    releaseRules,
   )
 
   /* Publish */
 
-  const releaseReports = await Promise.all(release => releaseWorkspace(release))
+  const releaseReports = await Promise.all(
+    releases.map(release => releaseWorkspace(release)),
+  )
 
   return {
     status: 'ok',
@@ -81,28 +84,28 @@ export async function manage(): Promise<
  */
 const releaseRules: SemanthaRule[] = [
   // Angular
-  { rule: new RegExp('fedat'), release: constants.MINOR },
-  { rule: new RegExp('fidx'), release: constants.PATCH },
-  { rule: new RegExp('pedrf'), release: constants.PATCH },
+  { regex: new RegExp('fedat'), release: constants.MINOR },
+  { regex: new RegExp('fidx'), release: constants.PATCH },
+  { regex: new RegExp('pedrf'), release: constants.PATCH },
   // Atom
-  { rule: new RegExp(':racehorse:'), release: constants.PATCH },
-  { rule: new RegExp(':bug:'), release: constants.PATCH },
-  { rule: new RegExp(':penguin:'), release: constants.PATCH },
-  { rule: new RegExp(':apple:'), release: constants.PATCH },
-  { rule: new RegExp(':checkered_flag:'), release: constants.PATCH },
+  { regex: new RegExp(':racehorse:'), release: constants.PATCH },
+  { regex: new RegExp(':bug:'), release: constants.PATCH },
+  { regex: new RegExp(':penguin:'), release: constants.PATCH },
+  { regex: new RegExp(':apple:'), release: constants.PATCH },
+  { regex: new RegExp(':checkered_flag:'), release: constants.PATCH },
   // Ember
-  { rule: new RegExp('BUGFIX'), release: constants.PATCH },
-  { rule: new RegExp('FEATURE'), release: constants.MINOR },
-  { rule: new RegExp('SECURITY'), release: constants.PATCH },
+  { regex: new RegExp('BUGFIX'), release: constants.PATCH },
+  { regex: new RegExp('FEATURE'), release: constants.MINOR },
+  { regex: new RegExp('SECURITY'), release: constants.PATCH },
   // ESLint
-  { rule: new RegExp('Breaking'), release: constants.MAJOR },
-  { rule: new RegExp('Fix'), release: constants.PATCH },
-  { rule: new RegExp('Update'), release: constants.MINOR },
-  { rule: new RegExp('New'), release: constants.MINOR },
+  { regex: new RegExp('Breaking'), release: constants.MAJOR },
+  { regex: new RegExp('Fix'), release: constants.PATCH },
+  { regex: new RegExp('Update'), release: constants.MINOR },
+  { regex: new RegExp('New'), release: constants.MINOR },
   // Express
-  { rule: new RegExp('perf'), release: constants.PATCH },
-  { rule: new RegExp('deps'), release: constants.PATCH },
+  { regex: new RegExp('perf'), release: constants.PATCH },
+  { regex: new RegExp('deps'), release: constants.PATCH },
   // JSHint
-  { rule: new RegExp('FEAT'), release: constants.MINOR },
-  { rule: new RegExp('FIX'), release: constants.PATCH },
+  { regex: new RegExp('FEAT'), release: constants.MINOR },
+  { regex: new RegExp('FIX'), release: constants.PATCH },
 ]
