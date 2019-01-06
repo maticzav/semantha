@@ -13,7 +13,6 @@ describe('analyser', () => {
       {
         path: '/packages/package-a',
         pkg: {
-          _id: 'package-a@',
           name: 'package-a',
           version: '1.0.0',
           dependencies: {
@@ -24,13 +23,11 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
       {
         path: '/packages/package-b',
         pkg: {
-          _id: 'package-b@',
           name: 'package-b',
           version: '1.0.0',
           dependencies: {
@@ -40,13 +37,11 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
       {
         path: '/packages/package-c',
         pkg: {
-          _id: 'package-c@',
           name: 'package-c',
           version: '1.0.0',
           dependencies: {
@@ -56,13 +51,11 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
       {
         path: '/packages/package-d',
         pkg: {
-          _id: 'package-d@',
           name: 'package-d',
           version: '1.0.0',
           dependencies: {
@@ -71,13 +64,11 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
       {
         path: '/packages/package-e',
         pkg: {
-          _id: 'package-e@',
           name: 'package-e',
           version: '1.0.0',
           dependencies: {
@@ -87,13 +78,11 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
       {
         path: '/packages/package-f',
         pkg: {
-          _id: 'package-f@',
           name: 'package-f',
           version: '1.0.0',
           dependencies: {
@@ -104,13 +93,11 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
       {
         path: '/packages/package-g',
         pkg: {
-          _id: 'package-g@',
           name: 'package-g',
           version: '1.0.0',
           dependencies: {
@@ -121,7 +108,6 @@ describe('analyser', () => {
           devDependencies: {
             irrelavantDev: '1.0.0',
           },
-          readme: 'ERROR: No README data found!',
         },
       },
     ]
@@ -213,7 +199,6 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-a',
           pkg: {
-            _id: 'package-a@',
             dependencies: {
               irrelavant: '1.0.0',
               'package-b': '1.0.0',
@@ -221,7 +206,7 @@ describe('analyser', () => {
             },
             devDependencies: { irrelavantDev: '1.0.0' },
             name: 'package-a',
-            readme: 'ERROR: No README data found!',
+
             version: '1.0.0',
           },
         },
@@ -232,11 +217,10 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-b',
           pkg: {
-            _id: 'package-b@',
             dependencies: { irrelavant: '1.0.0', 'package-e': '1.0.0' },
             devDependencies: { irrelavantDev: '1.0.0' },
             name: 'package-b',
-            readme: 'ERROR: No README data found!',
+
             version: '1.0.0',
           },
         },
@@ -254,11 +238,10 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-c',
           pkg: {
-            _id: 'package-c@',
             dependencies: { irrelavant: '1.0.0', 'package-d': '1.0.0' },
             devDependencies: { irrelavantDev: '1.0.0' },
             name: 'package-c',
-            readme: 'ERROR: No README data found!',
+
             version: '1.0.0',
           },
         },
@@ -269,11 +252,10 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-d',
           pkg: {
-            _id: 'package-d@',
             dependencies: { irrelavant: '1.0.0' },
             devDependencies: { irrelavantDev: '1.0.0' },
             name: 'package-d',
-            readme: 'ERROR: No README data found!',
+
             version: '1.0.0',
           },
         },
@@ -295,12 +277,10 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-e',
           pkg: {
-            _id: 'package-e@',
+            name: 'package-e',
+            version: '1.0.0',
             dependencies: { irrelavant: '1.0.0', 'package-f': '1.0.0' },
             devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-e',
-            readme: 'ERROR: No README data found!',
-            version: '1.0.0',
           },
         },
       },
@@ -310,16 +290,14 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-f',
           pkg: {
-            _id: 'package-f@',
+            name: 'package-f',
+            version: '1.0.0',
             dependencies: {
               irrelavant: '1.0.0',
               'package-d': '1.0.0',
               'package-g': '1.0.0',
             },
             devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-f',
-            readme: 'ERROR: No README data found!',
-            version: '1.0.0',
           },
         },
       },
@@ -329,16 +307,14 @@ describe('analyser', () => {
         workspace: {
           path: '/packages/package-g',
           pkg: {
-            _id: 'package-g@',
+            name: 'package-g',
+            version: '1.0.0',
             dependencies: {
               irrelavant: '1.0.0',
               'package-b': '1.0.0',
               'package-d': '1.0.0',
             },
             devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-g',
-            readme: 'ERROR: No README data found!',
-            version: '1.0.0',
           },
         },
       },

@@ -1,6 +1,6 @@
 import * as Octokit from '@octokit/rest'
 import { SemanthaRelease } from './analyser'
-import { getNextVersion } from './release'
+import { getNextVersion } from './version'
 import { generateChangelog } from './changelog'
 
 export interface GithubRepository {

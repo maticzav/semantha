@@ -3,7 +3,7 @@ import { getCommitsSinceLastRelease, GithubRepository } from '../'
 import { createGithubRelease } from '../github'
 import { SemanthaRelease } from '../analyser'
 
-import * as release from '../release'
+import * as version from '../version'
 import * as changelog from '../changelog'
 
 describe('github', () => {
@@ -83,8 +83,8 @@ describe('github', () => {
 
   test('createGithubRelease correctly creates a Github release', async () => {
     /* Mocks */
-    const releaseSpy = jest
-      .spyOn(release, 'getNextVersion')
+    const versionSpy = jest
+      .spyOn(version, 'getNextVersion')
       .mockReturnValue('version')
     const changelogSpy = jest
       .spyOn(changelog, 'generateChangelog')
@@ -114,12 +114,10 @@ describe('github', () => {
       workspace: {
         path: '/packages/package-c',
         pkg: {
-          _id: 'package-c@',
+          name: 'package-c',
+          version: '1.0.0',
           dependencies: { irrelavant: '1.0.0', 'package-d': '1.0.0' },
           devDependencies: { irrelavantDev: '1.0.0' },
-          name: 'package-c',
-          readme: 'ERROR: No README data found!',
-          version: '1.0.0',
         },
       },
     }
@@ -131,7 +129,7 @@ describe('github', () => {
     /* Tests */
 
     expect(res).toBe('pass')
-    expect(releaseSpy).toBeCalledWith(_release)
+    expect(versionSpy).toBeCalledWith(_release)
     expect(changelogSpy).toBeCalledWith(_release)
     expect(git.repos.createRelease).toBeCalledWith({
       owner: repository.owner,

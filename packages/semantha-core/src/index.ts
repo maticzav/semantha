@@ -1,4 +1,10 @@
-export { analyzeCommits, SemanthaRelease, SemanthaRule } from './analyser'
+export {
+  analyzeCommits,
+  Workspace,
+  Package,
+  SemanthaRelease,
+  SemanthaRule,
+} from './analyser'
 export { constants, SemanthaVersion } from './constants'
 export {
   getCommitsSinceLastRelease,
@@ -6,5 +12,4 @@ export {
   GithubCommit,
   GithubRepository,
 } from './github'
-export { releaseWorkspace } from './release'
-export { loadWorkspace, Workspace } from './workspaces'
+export { versionWorkspace, getNextVersion } from './version'

@@ -1,9 +1,0 @@
-{
-  "name": "test-workspace",
-  "dependencies": {
-    "something": "1.0.0"
-  },
-  "devDependencies": {
-    "devit": "1.0.0"
-  }
-}

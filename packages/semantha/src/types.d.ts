@@ -46,3 +46,13 @@ declare module 'read-pkg' {
   export default function(options?: Options): Promise<Package>
   export function sync(options?: Options): Package
 }
+
+declare module 'write-pkg' {
+  export default function(
+    path: string,
+    data: { [k: string]: any },
+  ): Promise<void>
+  export default function(data: { [k: string]: any }): Promise<void>
+  export function sync(path: string, data: { [k: string]: any }): void
+  export function sync(data: { [k: string]: any }): void
+}

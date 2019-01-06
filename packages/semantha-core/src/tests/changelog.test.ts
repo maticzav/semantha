@@ -16,12 +16,10 @@ describe('changelog', () => {
       workspace: {
         path: '/packages/package-c',
         pkg: {
-          _id: 'package-c@',
+          name: 'package-c',
+          version: '1.0.0',
           dependencies: { irrelavant: '1.0.0', 'package-d': '1.0.0' },
           devDependencies: { irrelavantDev: '1.0.0' },
-          name: 'package-c',
-          readme: 'ERROR: No README data found!',
-          version: '1.0.0',
         },
       },
     }

@@ -1,9 +1,4 @@
-import { sync as readPkg, Package } from 'read-pkg'
-
-export interface Workspace {
-  path: string
-  pkg: Package
-}
+import { sync as readPkg } from 'read-pkg'
 
 /**
  *

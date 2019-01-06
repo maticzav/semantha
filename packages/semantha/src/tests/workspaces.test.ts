@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { loadWorkspace } from '..'
+import { loadWorkspace } from 'semantha-core/src'
 
 describe('workspaces functions work correctly', () => {
   test('errors on missing workspace definition', async () => {

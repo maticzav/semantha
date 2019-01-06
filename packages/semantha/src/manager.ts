@@ -1,6 +1,6 @@
 import Octokit from '@octokit/rest'
 import {
-  SemanthaRelease,
+  // SemanthaRelease,
   SemanthaRule,
   getCommitsSinceLastRelease,
   analyzeCommits,
@@ -11,7 +11,7 @@ import { Configuration, getConfigurationFrom } from './config'
 
 export interface Report {
   configuration: Configuration
-  releases: SemanthaRelease
+  releases: any[]
 }
 
 /**
@@ -24,7 +24,7 @@ export async function manage(): Promise<
 > {
   /* Semantha configuration */
 
-  const configuration = await getConfigurationFrom(options.cwd)
+  const configuration = await getConfigurationFrom('options.cwd')
 
   if (configuration.status === 'err') {
     return {

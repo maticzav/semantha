@@ -1,7 +1,18 @@
-import { Workspace } from './workspaces'
 import { GithubCommit } from './github'
 import { constants, SemanthaVersion } from './constants'
 import { filterMap } from './utils'
+
+export interface Package {
+  name: string
+  version: string
+  dependencies: { [dependency: string]: string }
+  devDependencies: { [dependency: string]: string }
+}
+
+export interface Workspace {
+  path: string
+  pkg: Package
+}
 
 export interface SemanthaRule {
   regex: RegExp
