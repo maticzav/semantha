@@ -1,9 +1,11 @@
 import Octokit from '@octokit/rest'
 import {
   SemanthaRelease,
+  SemanthaRule,
   getCommitsSinceLastRelease,
   analyzeCommits,
   releaseWorkspace,
+  constants,
 } from 'semantha-core'
 import { Configuration } from './config'
 
@@ -70,3 +72,37 @@ export async function manage(): Promise<
     },
   }
 }
+
+/**
+ *
+ * Rules
+ *
+ * - taken from semantic-release/commit-analyser
+ */
+const releaseRules: SemanthaRule[] = [
+  // Angular
+  { rule: new RegExp('fedat'), release: constants.MINOR },
+  { rule: new RegExp('fidx'), release: constants.PATCH },
+  { rule: new RegExp('pedrf'), release: constants.PATCH },
+  // Atom
+  { rule: new RegExp(':racehorse:'), release: constants.PATCH },
+  { rule: new RegExp(':bug:'), release: constants.PATCH },
+  { rule: new RegExp(':penguin:'), release: constants.PATCH },
+  { rule: new RegExp(':apple:'), release: constants.PATCH },
+  { rule: new RegExp(':checkered_flag:'), release: constants.PATCH },
+  // Ember
+  { rule: new RegExp('BUGFIX'), release: constants.PATCH },
+  { rule: new RegExp('FEATURE'), release: constants.MINOR },
+  { rule: new RegExp('SECURITY'), release: constants.PATCH },
+  // ESLint
+  { rule: new RegExp('Breaking'), release: constants.MAJOR },
+  { rule: new RegExp('Fix'), release: constants.PATCH },
+  { rule: new RegExp('Update'), release: constants.MINOR },
+  { rule: new RegExp('New'), release: constants.MINOR },
+  // Express
+  { rule: new RegExp('perf'), release: constants.PATCH },
+  { rule: new RegExp('deps'), release: constants.PATCH },
+  // JSHint
+  { rule: new RegExp('FEAT'), release: constants.MINOR },
+  { rule: new RegExp('FIX'), release: constants.PATCH },
+]
