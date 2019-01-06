@@ -1,0 +1,15 @@
+{
+  "name": "with-json",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "release": "semantha"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "workspaces": [
+    "workspace-a",
+    "workspace-b"
+  ],
+  "license": "MIT"
+}

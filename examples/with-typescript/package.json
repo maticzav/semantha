@@ -1,0 +1,14 @@
+{
+  "name": "with-typescript",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "release": "ts-node src/index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
+  },
+  "license": "MIT"
+}
