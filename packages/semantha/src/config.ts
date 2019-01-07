@@ -98,18 +98,22 @@ export async function getConfigurationFrom(
     | { status: 'ok'; workspaces: Workspace[] }
     | { status: 'err'; message: string }
   > {
-    /** Find all paths */
-    const paths = await globby(patterns, {
-      cwd: cwd,
-      onlyDirectories: true,
-      gitignore: true,
-      absolute: true,
-    })
+    try {
+      /** Find all paths */
+      const paths = await globby(patterns, {
+        cwd: cwd,
+        onlyDirectories: true,
+        gitignore: true,
+        absolute: true,
+      })
 
-    /** Hydrate workspaces */
-    const workspaces = await Promise.all(paths.map(hydrateWorkspace))
+      /** Hydrate workspaces */
+      const workspaces = await Promise.all(paths.map(hydrateWorkspace))
 
-    return { status: 'ok', workspaces: workspaces }
+      return { status: 'ok', workspaces: workspaces }
+    } catch (err) {
+      return { status: 'err', message: err.message }
+    }
   }
 
   /**

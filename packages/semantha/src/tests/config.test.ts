@@ -43,6 +43,19 @@ describe('configuration', () => {
     })
   })
 
+  test('getConfigurationFrom reports invalid workspace configuration', async () => {
+    const cwd = path.resolve(__dirname, './__fixtures__/workspaces/invalid/')
+    const workspaces = await getConfigurationFrom(cwd)
+
+    /* Tests */
+
+    expect(workspaces).toEqual({
+      status: 'err',
+      message:
+        "ENOENT: no such file or directory, open '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/invalid/package/package.json'",
+    })
+  })
+
   test('getConfigurationFrom finds correct configuration', async () => {
     const cwd = path.resolve(__dirname, './__fixtures__/workspaces/valid/')
     const config = await getConfigurationFrom(cwd)

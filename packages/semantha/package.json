@@ -2,6 +2,9 @@
   "name": "semantha",
   "version": "0.0.0",
   "main": "dist/index.js",
+  "bin": {
+    "semantha": "dist/bin.js"
+  },
   "scripts": {
     "clean": "rimraf dist",
     "dev": "ts-node src/index.ts",
