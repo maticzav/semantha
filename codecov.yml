@@ -5,20 +5,14 @@ coverage:
       semantha:
         target: 100%
         flags: semantha
-      semantha-commit-analyser:
+      semantha-core:
         target: 100%
-        flags: semantha-commit-analyser
-      semantha-npm:
-        target: 100%
-        flags: semantha-npm
+        flags: semantha-core
 
 flags:
   semantha:
     paths:
       - packages/semantha/
-  semantha-commit-analyser:
+  semantha-core:
     paths:
-      - packages/semantha-commit-analyser/
-  semantha-npm:
-    paths:
-      - packages/semantha-npm/
+      - packages/semantha-core/
