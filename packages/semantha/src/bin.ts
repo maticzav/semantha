@@ -12,7 +12,7 @@ Options
 if (process.env.NODE_ENV !== 'test') main(cli)
 
 export async function main(cli: meow.Result): Promise<void> {
-  manage().then(res => {
+  manage(process.cwd()).then(res => {
     if (res.status === 'ok') {
       console.log(res.report)
     } else {

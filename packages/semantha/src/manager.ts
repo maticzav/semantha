@@ -6,11 +6,16 @@ import {
   analyzeCommits,
   constants,
 } from 'semantha-core'
+
 import { Configuration, getConfigurationFrom } from './config'
+import { isBranchUpToDate } from './git'
+import { publish } from './npm'
+import { filterMap } from './utils'
+import { prepareWorkspace } from './version'
 
 export interface Report {
   configuration: Configuration
-  releases: any[]
+  releases: SemanthaRelease[]
 }
 
 /**
@@ -18,12 +23,20 @@ export interface Report {
  * Manager
  *
  */
-export async function manage(): Promise<
+export async function manage(
+  cwd: string,
+): Promise<
   { status: 'ok'; report: Report } | { status: 'err'; message: string }
 > {
+  /* Environment */
+
+  if (!process.env.GITHUB_TOKEN) {
+    return { status: 'err', message: 'Missing Github credentials!' }
+  }
+
   /* Semantha configuration */
 
-  const configuration = await getConfigurationFrom('options.cwd')
+  const configuration = await getConfigurationFrom(cwd)
 
   if (configuration.status === 'err') {
     return {
@@ -38,10 +51,23 @@ export async function manage(): Promise<
 
   client.authenticate({
     type: 'token',
-    token: process.env.GITHUB_TOKEN!,
+    token: process.env.GITHUB_TOKEN,
   })
 
   /* Verify local version */
+
+  const updated = await isBranchUpToDate('master')
+
+  if (updated.status !== 'ok') {
+    return { status: 'err', message: updated.message }
+  }
+
+  if (!updated.updated) {
+    return {
+      status: 'err',
+      message: 'Local head is behind remote. Skipping version.',
+    }
+  }
 
   /** Fetch commits from last release */
 
@@ -60,7 +86,41 @@ export async function manage(): Promise<
 
   /* Version */
 
+  const preparedPackages = await Promise.all(
+    releases.map(release => prepareWorkspace(release, releases)),
+  )
+
+  if (preparedPackages.some(pkg => pkg.status !== 'ok')) {
+    /* Squashes all error messages into one */
+    const message = filterMap(pkg => {
+      if (pkg.status === 'ok') {
+        return null
+      } else {
+        return pkg.message
+      }
+    }, preparedPackages).join('\n')
+
+    return { status: 'err', message: message }
+  }
+
   /* Publish */
+
+  const publishedPackages = await Promise.all(
+    releases.map(release => publish(release)),
+  )
+
+  if (publishedPackages.some(pkg => pkg.status !== 'ok')) {
+    /* Squashes all error messages into one */
+    const message = filterMap(pkg => {
+      if (pkg.status === 'ok') {
+        return null
+      } else {
+        return pkg.message
+      }
+    }, publishedPackages).join('\n')
+
+    return { status: 'err', message: message }
+  }
 
   /* Return report */
 

@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { getConfigurationFrom } from '../config'
 
-describe('configuration functions work as expected', () => {
+describe('configuration', () => {
   test('getConfigurationFrom reports missing repository configuration', async () => {
     const cwd = path.resolve(__dirname, './__fixtures__/config/no-repository/')
     const config = await getConfigurationFrom(cwd)
@@ -43,19 +43,6 @@ describe('configuration functions work as expected', () => {
     })
   })
 
-  test('getConfigurationFrom reports invalid workspace configuration', async () => {
-    const cwd = path.resolve(__dirname, './__fixtures__/workspaces/invalid/')
-    const workspaces = await getConfigurationFrom(cwd)
-
-    /* Tests */
-
-    expect(workspaces).toEqual({
-      status: 'err',
-      message:
-        "ENOENT: no such file or directory, open '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/invalid/packages/package.json'",
-    })
-  })
-
   test('getConfigurationFrom finds correct configuration', async () => {
     const cwd = path.resolve(__dirname, './__fixtures__/workspaces/valid/')
     const config = await getConfigurationFrom(cwd)
@@ -72,33 +59,30 @@ describe('configuration functions work as expected', () => {
             path:
               '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-a',
             pkg: {
-              _id: 'package-a@0.0.0',
               name: 'package-a',
               version: '0.0.0',
               dependencies: {},
-              readme: 'ERROR: No README data found!',
+              devDependencies: {},
             },
           },
           {
             path:
               '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-b',
             pkg: {
-              _id: 'package-b@0.0.0',
               name: 'package-b',
               version: '0.0.0',
               dependencies: {},
-              readme: 'ERROR: No README data found!',
+              devDependencies: {},
             },
           },
           {
             path:
               '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-c',
             pkg: {
-              _id: 'package-c@0.0.0',
               name: 'package-c',
               version: '0.0.0',
               dependencies: {},
-              readme: 'ERROR: No README data found!',
+              devDependencies: {},
             },
           },
         ],
