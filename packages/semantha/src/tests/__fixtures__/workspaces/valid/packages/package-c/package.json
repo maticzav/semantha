@@ -1,5 +1,10 @@
 {
   "name": "package-c",
-  "version": "0.0.0",
-  "dependencies": {}
+  "version": "1.0.0",
+  "dependencies": {
+    "something": "1.0.0"
+  },
+  "devDependencies": {
+    "devit": "1.0.0"
+  }
 }

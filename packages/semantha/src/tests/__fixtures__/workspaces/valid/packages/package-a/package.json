@@ -1,5 +1,12 @@
 {
   "name": "package-a",
-  "version": "0.0.0",
-  "dependencies": {}
+  "version": "1.0.0",
+  "dependencies": {
+    "something": "1.0.0",
+    "package-b": "1.0.2"
+  },
+  "devDependencies": {
+    "devit": "1.0.0",
+    "package-c": "2.0.0"
+  }
 }
