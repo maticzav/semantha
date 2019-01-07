@@ -1,5 +1,5 @@
 import { SemanthaRelease, versionWorkspace } from 'semantha-core'
-import writePkg from 'write-pkg'
+import { sync as writePkg } from 'write-pkg'
 
 /**
  *
@@ -8,13 +8,12 @@ import writePkg from 'write-pkg'
  * @param release
  * @param releases
  */
-export async function prepareWorkspace(
+export function prepareWorkspace(
   release: SemanthaRelease,
   releases: SemanthaRelease[],
-): Promise<
+):
   | { status: 'ok'; release: SemanthaRelease }
-  | { status: 'err'; message: string }
-> {
+  | { status: 'err'; message: string } {
   /* Diff workspace dependencies */
   const diff = versionWorkspace(release, releases)
 

@@ -12,11 +12,12 @@ import execa from 'execa'
  */
 export async function isRefInHistory(
   ref: string,
+  options: execa.Options,
 ): Promise<
   { status: 'ok'; isRefInHistory: boolean } | { status: 'err'; message: string }
 > {
   try {
-    await execa('git', ['merge-base', '--is-ancestor', ref, 'HEAD'])
+    await execa.sync('git', ['merge-base', '--is-ancestor', ref, 'HEAD'])
     return { status: 'ok', isRefInHistory: true }
   } catch (error) {
     if (error.code === 1) {
@@ -35,6 +36,7 @@ export async function isRefInHistory(
  */
 export async function getRemoteHead(
   branch: string,
+  options: execa.Options,
 ): Promise<
   { status: 'ok'; head: string } | { status: 'err'; message: string }
 > {
@@ -59,17 +61,18 @@ export async function getRemoteHead(
  */
 export async function isBranchUpToDate(
   branch: string,
+  options: execa.Options,
 ): Promise<
   { status: 'ok'; updated: boolean } | { status: 'err'; message: string }
 > {
   try {
-    const remoteHead = await getRemoteHead(branch)
+    const remoteHead = await getRemoteHead(branch, options)
 
     if (remoteHead.status !== 'ok') {
       return { status: 'err', message: remoteHead.message }
     }
 
-    const refInHistory = await isRefInHistory(remoteHead.head)
+    const refInHistory = await isRefInHistory(remoteHead.head, options)
 
     if (refInHistory.status !== 'ok') {
       return { status: 'err', message: refInHistory.message }

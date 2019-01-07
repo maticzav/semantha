@@ -56,7 +56,7 @@ export async function manage(
 
   /* Verify local version */
 
-  const updated = await isBranchUpToDate('master')
+  const updated = await isBranchUpToDate('master', { cwd })
 
   if (updated.status !== 'ok') {
     return { status: 'err', message: updated.message }
@@ -86,8 +86,8 @@ export async function manage(
 
   /* Version */
 
-  const preparedPackages = await Promise.all(
-    releases.map(release => prepareWorkspace(release, releases)),
+  const preparedPackages = releases.map(release =>
+    prepareWorkspace(release, releases),
   )
 
   if (preparedPackages.some(pkg => pkg.status !== 'ok')) {
@@ -105,9 +105,7 @@ export async function manage(
 
   /* Publish */
 
-  const publishedPackages = await Promise.all(
-    releases.map(release => publish(release)),
-  )
+  const publishedPackages = releases.map(release => publish(release))
 
   if (publishedPackages.some(pkg => pkg.status !== 'ok')) {
     /* Squashes all error messages into one */
