@@ -8,49 +8,53 @@ import pRetry from 'p-retry'
 import { publish } from '../'
 
 describe('npm', () => {
-  test('publish publishes workspace correctly', async () => {
-    const { container, url } = await startRegistry()
+  test(
+    'publish publishes workspace correctly',
+    async () => {
+      const { container, url } = await startRegistry()
 
-    const res = await publish(
-      {
-        commits: [],
-        version: 1,
-        workspace: {
-          path: path.resolve(__dirname, './__fixtures__/package/'),
-          pkg: {
-            name: 'package-c',
-            version: '1.0.0',
-            dependencies: {},
-            devDependencies: {},
+      const res = await publish(
+        {
+          commits: [],
+          version: 1,
+          workspace: {
+            path: path.resolve(__dirname, './__fixtures__/package/'),
+            pkg: {
+              name: 'package-c',
+              version: '1.0.0',
+              dependencies: {},
+              devDependencies: {},
+            },
           },
         },
-      },
-      {
-        registry: url,
-      },
-    )
+        {
+          registry: url,
+        },
+      )
 
-    /* Tests */
+      /* Tests */
 
-    expect(res).toEqual({
-      status: 'ok',
-      release: {
-        commits: [],
-        version: 1,
-        workspace: {
-          path: '/packages/package-c',
-          pkg: {
-            name: 'package-c',
-            version: '1.0.0',
-            dependencies: {},
-            devDependencies: {},
+      expect(res).toEqual({
+        status: 'ok',
+        release: {
+          commits: [],
+          version: 1,
+          workspace: {
+            path: '/packages/package-c',
+            pkg: {
+              name: 'package-c',
+              version: '1.0.0',
+              dependencies: {},
+              devDependencies: {},
+            },
           },
         },
-      },
-    })
+      })
 
-    stopRegistry(container)
-  }, 30000)
+      stopRegistry(container)
+    },
+    180 * 1000,
+  )
 
   test('publish reports error correctly', async () => {
     const res = await publish(

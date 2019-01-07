@@ -1,71 +1,71 @@
 // import { prepareWorkspace } from '../version'
 
-// import * as writePkg from 'write-pkg'
+import * as writePkg from 'write-pkg'
 
 describe('version', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
   })
 
-  // test('prepareWorkspace correctly reports error', async () => {
-  //   /* Mock */
+  test('prepareWorkspace correctly reports error', async () => {
+    /* Mock */
 
-  //   const writePkgMock = jest
-  //     .spyOn(writePkg, 'default')
-  //     .mockResolvedValue(undefined)
+    const writePkgMock = jest
+      .spyOn(writePkg, 'default')
+      .mockResolvedValue(undefined)
 
-  //   /* Execution */
+    /* Execution */
 
-  //   const res = await prepareWorkspace(
-  //     {
-  //       commits: [],
-  //       version: 1,
-  //       workspace: {
-  //         path: '/packages/package-c',
-  //         pkg: {
-  //           name: 'package-c',
-  //           version: '1.0.0',
-  //           dependencies: {},
-  //           devDependencies: {},
-  //         },
-  //       },
-  //     },
-  //     [],
-  //   )
+    const res = await prepareWorkspace(
+      {
+        commits: [],
+        version: 1,
+        workspace: {
+          path: '/packages/package-c',
+          pkg: {
+            name: 'package-c',
+            version: '1.0.0',
+            dependencies: {},
+            devDependencies: {},
+          },
+        },
+      },
+      [],
+    )
 
-  //   /* Tests */
+    /* Tests */
 
-  //   expect(2).toBe(2)
-  // })
+    expect(2).toBe(2)
+  })
 
-  // test('prepareWorkspace versions workspace correctly', async () => {
-  //   /* Mock */
+  test('prepareWorkspace versions workspace correctly', async () => {
+    /* Mock */
 
-  //   const writePkgMock = jest
-  //     .spyOn(writePkg, 'default')
-  //     .mockResolvedValue(undefined)
+    const writePkgMock = jest
+      .spyOn(writePkg, 'default')
+      .mockResolvedValue(undefined)
 
-  //   /* Execution */
+    /* Execution */
 
-  //   const res = await prepareWorkspace(
-  //     {
-  //       commits: [],
-  //       version: 1,
-  //       workspace: {
-  //         path: '/packages/package-c',
-  //         pkg: {
-  //           name: 'package-c',
-  //           version: '1.0.0',
-  //           dependencies: {},
-  //           devDependencies: {},
-  //         },
-  //       },
-  //     },
-  //     [],
-  //   )
+    const res = await prepareWorkspace(
+      {
+        commits: [],
+        version: 1,
+        workspace: {
+          path: '/packages/package-c',
+          pkg: {
+            name: 'package-c',
+            version: '1.0.0',
+            dependencies: {},
+            devDependencies: {},
+          },
+        },
+      },
+      [],
+    )
 
-  //   /* Tests */
+    /* Tests */
 
-  //   expect(2).toBe(2)
-  // })
+    expect(2).toBe(2)
+  })
 })

@@ -24,12 +24,26 @@ describe('git', () => {
 
   test('isRefInHistory correctly refInHistory', async () => {
     const repo = await createTmpRepository('master')
+    const head = await gitTagHead('master', { cwd: repo })
 
-    const res = isRefInHistory('master', { cwd: repo })
+    const isRandomRefInHistory = await isRefInHistory('random-ref', {
+      cwd: repo,
+    })
+    const isHeadRefInHistory = await isRefInHistory(head, {
+      cwd: repo,
+    })
 
     /* Tests */
 
-    expect(2).toBe(2)
+    expect(isRandomRefInHistory).toEqual({
+      status: 'ok',
+      isRefInHistory: false,
+    })
+
+    expect(isHeadRefInHistory).toEqual({
+      status: 'ok',
+      isRefInHistory: true,
+    })
   })
 
   /**
@@ -37,76 +51,56 @@ describe('git', () => {
    */
 
   test('getRemoteHead correctly reports error', async () => {
-    /* Mock */
-
-    const execaMock = jest.spyOn(execa, 'default').mockResolvedValue(undefined)
-
-    /* Execution */
-
-    const res = getRemoteHead('master')
-
-    /* Tests */
-
+    // const res = getRemoteHead('master')
+    // /* Tests */
     expect(2).toBe(2)
   })
 
   test('getRemoteHead correctly finds remote head', async () => {
-    /* Mock */
-
-    const execaMock = jest.spyOn(execa, 'default').mockResolvedValue(undefined)
-
-    /* Execution */
-
-    const res = getRemoteHead('master')
+    const repo = await cloneTmpRepository(
+      'https://github.com/maticzav/semantha',
+      'master',
+    )
+    const res = getRemoteHead('master', { cwd: repo })
 
     /* Tests */
 
-    expect(2).toBe(2)
+    expect(res).toBe(
+      await gitRemoteTagHead('https://github.com/maticzav/semantha', 'master', {
+        cwd: repo,
+      }),
+    )
   })
 
   /**
    * isBranchUpToDate
    */
   test('isBranchUpToDate correctly logs remoteHead error', async () => {
-    /* Mock */
-
-    const execaMock = jest.spyOn(execa, 'default').mockResolvedValue(undefined)
-
-    /* Execution */
-
-    const res = isBranchUpToDate('master')
-
-    /* Tests */
-
+    // const res = isBranchUpToDate('master')
+    // /* Tests */
     expect(2).toBe(2)
   })
 
   test('isBranchUpToDate correctly logs refInHistory error', async () => {
-    /* Mock */
-
-    const repo = await createTmpRepository()
-
-    /* Execution */
-
-    const res = isBranchUpToDate('master', { cwd: repo })
-
-    /* Tests */
-
+    // const repo = await createTmpRepository()
+    // const res = isBranchUpToDate('master', { cwd: repo })
+    // /* Tests */
     expect(2).toBe(2)
   })
 
   test('isBranchUpToDate correctly determines whether branch is up to date', async () => {
-    /* Mock */
-
-    const execaMock = jest.spyOn(execa, 'default').mockResolvedValue(undefined)
-
-    /* Execution */
-
-    const res = isBranchUpToDate('master')
+    const repo = await cloneTmpRepository(
+      'https://github.com/maticzav/semantha',
+      'master',
+    )
+    const res = isBranchUpToDate('master', { cwd: repo })
 
     /* Tests */
 
-    expect(2).toBe(2)
+    expect(res).toEqual({
+      status: 'ok',
+      updated: true,
+    })
   })
 })
 
@@ -165,6 +159,7 @@ export async function gitCommits(messages: string[], options: execa.Options) {
     )
   }, Promise.resolve())
 
+  return res
   // return (await gitGetCommits(undefined, execaOpts)).slice(0, messages.length)
 }
 
@@ -178,4 +173,26 @@ export async function gitPush(
     ['push', '--tags', repositoryUrl, `HEAD:${branch}`],
     execaOpts,
   )
+}
+
+export function gitTagHead(
+  tagName: string,
+  execaOpts: execa.Options,
+): Promise<string> {
+  return execa.stdout('git', ['rev-list', '-1', tagName], execaOpts)
+}
+
+export async function gitRemoteTagHead(
+  repository: string,
+  tagName: string,
+  execaOpts: execa.Options,
+) {
+  return (await execa.stdout(
+    'git',
+    ['ls-remote', '--tags', repository, tagName],
+    execaOpts,
+  ))
+    .split('\n')
+    .filter(tag => Boolean(tag))
+    .map(tag => tag.match(/^(\S+)/)![1])[0]
 }
