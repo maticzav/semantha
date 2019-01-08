@@ -3,7 +3,7 @@ import * as path from 'path'
 import { SemanthaRelease } from 'semantha-core'
 import tempy from 'tempy'
 
-import { prepareWorkspace } from '../version'
+import { prepareWorkspace } from '../'
 
 import * as writePkg from 'write-pkg'
 

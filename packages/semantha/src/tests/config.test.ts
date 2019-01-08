@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { getConfigurationFrom } from '../config'
+import { getConfigurationFrom } from '../'
 
 describe('configuration', () => {
   test('getConfigurationFrom reports missing repository configuration', async () => {

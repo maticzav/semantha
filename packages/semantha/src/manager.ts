@@ -8,7 +8,6 @@ import {
 } from 'semantha-core'
 
 import { Configuration, getConfigurationFrom } from './config'
-import { isBranchUpToDate } from './git'
 import { publish } from './npm'
 import { filterMap } from './utils'
 import { prepareWorkspace } from './version'
@@ -54,21 +53,6 @@ export async function manage(
     token: process.env.GITHUB_TOKEN,
   })
 
-  /* Verify local version */
-
-  const updated = await isBranchUpToDate('master', { cwd })
-
-  if (updated.status !== 'ok') {
-    return { status: 'err', message: updated.message }
-  }
-
-  if (!updated.updated) {
-    return {
-      status: 'err',
-      message: 'Local head is behind remote. Skipping version.',
-    }
-  }
-
   /** Fetch commits from last release */
 
   const commits = await getCommitsSinceLastRelease(
@@ -105,7 +89,9 @@ export async function manage(
 
   /* Publish */
 
-  const publishedPackages = releases.map(release => publish(release))
+  const publishedPackages = releases.map(release =>
+    publish(release, { registry: '' }),
+  )
 
   if (publishedPackages.some(pkg => pkg.status !== 'ok')) {
     /* Squashes all error messages into one */
