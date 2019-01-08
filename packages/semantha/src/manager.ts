@@ -80,6 +80,8 @@ export async function manage(
     releaseRules,
   )
 
+  /* Return analysis on dry run */
+
   if (options.dryRun) {
     return {
       status: 'ok',
@@ -95,8 +97,6 @@ export async function manage(
   const preparedPackages = releases.map(release =>
     prepareWorkspace(release, releases),
   )
-
-  // TODO:
 
   if (preparedPackages.some(pkg => pkg.status !== 'ok')) {
     /* Squashes all error messages into one */

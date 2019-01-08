@@ -152,15 +152,26 @@ describe('manager', () => {
     const getCommitsSinceLastReleaseMock = jest
       .spyOn(semantha, 'getCommitsSinceLastRelease')
       .mockResolvedValue({
-        status: 'err',
-        message: 'pass',
+        status: 'ok',
+        commits: [],
       })
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
-      .mockImplementation(() => {})
+      .mockReturnValue(['release', 'release', 'release'])
     const prepareWorkspace = jest
       .spyOn(version, 'prepareWorkspace')
-      .mockImplementation(() => {})
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'err',
+        message: 'err-1',
+      })
+      .mockReturnValueOnce({
+        status: 'err',
+        message: 'err-2',
+      })
     const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
     /* Execution */
@@ -171,12 +182,231 @@ describe('manager', () => {
 
     expect(res).toEqual({
       status: 'err',
-      message: 'pass',
+      message: 'err-1\nerr-2',
     })
     expect(getConfigurationFromMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
-    expect(analyzeCommits).toBeCalledTimes(0)
+    expect(analyzeCommits).toBeCalledTimes(1)
+    expect(prepareWorkspace).toBeCalledTimes(3)
+    expect(publishMock).toBeCalledTimes(0)
+  })
+
+  test('Manager correctly reports error in publish workspaces', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+
+    /* Mocks */
+
+    const getConfigurationFromMock = jest
+      .spyOn(configuration, 'getConfigurationFrom')
+      .mockResolvedValue({
+        status: 'ok',
+        config: {
+          repository: {
+            owner: 'maticzav',
+            repo: 'semantha',
+          },
+        },
+      })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockResolvedValue({
+        status: 'ok',
+        commits: [],
+      })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockReturnValue(['release', 'release', 'release'])
+    const prepareWorkspace = jest
+      .spyOn(version, 'prepareWorkspace')
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+    const publishMock = jest
+      .spyOn(npm, 'publish')
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'err',
+        message: 'err-1',
+      })
+      .mockReturnValueOnce({
+        status: 'err',
+        message: 'err-2',
+      })
+
+    /* Execution */
+
+    const res = await manage('', { dryRun: false })
+
+    /* Tests */
+
+    expect(res).toEqual({
+      status: 'err',
+      message: 'err-1\nerr-2',
+    })
+    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(1)
+    expect(prepareWorkspace).toBeCalledTimes(3)
+    expect(publishMock).toBeCalledTimes(3)
+  })
+
+  test('Manager correctly performs a dryrun in workspace publishing', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+
+    /* Mocks */
+
+    const getConfigurationFromMock = jest
+      .spyOn(configuration, 'getConfigurationFrom')
+      .mockResolvedValue({
+        status: 'ok',
+        config: {
+          repository: {
+            owner: 'maticzav',
+            repo: 'semantha',
+          },
+        },
+      })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockResolvedValue({
+        status: 'ok',
+        commits: [],
+      })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockReturnValue(['release', 'release', 'release'])
+    const prepareWorkspace = jest
+      .spyOn(version, 'prepareWorkspace')
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+    const publishMock = jest
+      .spyOn(npm, 'publish')
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+
+    /* Execution */
+
+    const res = await manage('', { dryRun: true })
+
+    /* Tests */
+
+    expect(res).toEqual({
+      status: 'ok',
+      report: {
+        configuration: { repository: { owner: 'maticzav', repo: 'semantha' } },
+        releases: ['release', 'release', 'release'],
+      },
+    })
+    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(1)
     expect(prepareWorkspace).toBeCalledTimes(0)
     expect(publishMock).toBeCalledTimes(0)
+  })
+
+  test('Manager correctly manages workspace publishing', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+
+    /* Mocks */
+
+    const getConfigurationFromMock = jest
+      .spyOn(configuration, 'getConfigurationFrom')
+      .mockResolvedValue({
+        status: 'ok',
+        config: {
+          repository: {
+            owner: 'maticzav',
+            repo: 'semantha',
+          },
+        },
+      })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockResolvedValue({
+        status: 'ok',
+        commits: [],
+      })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockReturnValue(['release', 'release', 'release'])
+    const prepareWorkspace = jest
+      .spyOn(version, 'prepareWorkspace')
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+    const publishMock = jest
+      .spyOn(npm, 'publish')
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+      .mockReturnValueOnce({
+        status: 'ok',
+        release: 'release',
+      })
+
+    /* Execution */
+
+    const res = await manage('', { dryRun: false })
+
+    /* Tests */
+
+    expect(res).toEqual({
+      status: 'ok',
+      report: {
+        configuration: { repository: { owner: 'maticzav', repo: 'semantha' } },
+        releases: ['release', 'release', 'release'],
+      },
+    })
+    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(1)
+    expect(prepareWorkspace).toBeCalledTimes(3)
+    expect(publishMock).toBeCalledTimes(3)
   })
 })
