@@ -7,6 +7,145 @@ import * as version from '../version'
 import * as changelog from '../changelog'
 
 describe('github', () => {
+  test('getCommitsSinceLatestRelease correctly reports error while fetching latest release', async () => {
+    /* Mocks */
+
+    const git = {
+      repos: {
+        getLatestRelease: jest.fn().mockImplementation(() => {
+          throw new Error('pass')
+        }),
+        listCommits: jest.fn().mockResolvedValueOnce({
+          data: new Array(50).fill({
+            sha: 'sha',
+          }),
+        }),
+        getCommit: jest.fn().mockResolvedValue({
+          data: {
+            sha: 'sha',
+            commit: {
+              message: '',
+              body: '',
+            },
+            files: [
+              {
+                filename: 'file',
+              },
+            ],
+          },
+        }),
+      },
+    }
+
+    /* Execution */
+
+    const repository: GithubRepository = {
+      repo: 'test-repo',
+      owner: 'test-owner',
+    }
+
+    const res = await getCommitsSinceLastRelease(git as any, repository)
+
+    /* Tests */
+
+    expect(res).toEqual({ status: 'err', message: 'pass' })
+    expect(git.repos.getLatestRelease).toBeCalledWith(repository)
+    expect(git.repos.getLatestRelease).toBeCalledTimes(1)
+    expect(git.repos.listCommits).toBeCalledTimes(0)
+    expect(git.repos.getCommit).toBeCalledTimes(0)
+  })
+
+  test('getCommitsSinceLatestRelease correctly reports error while listing commits', async () => {
+    /* Mocks */
+
+    const publishDate = new Date().toDateString()
+
+    const git = {
+      repos: {
+        getLatestRelease: jest.fn().mockResolvedValue({
+          data: {
+            published_at: publishDate,
+          },
+        }),
+        listCommits: jest.fn().mockImplementation(() => {
+          throw new Error('pass')
+        }),
+        getCommit: jest.fn().mockResolvedValue({
+          data: {
+            sha: 'sha',
+            commit: {
+              message: '',
+              body: '',
+            },
+            files: [
+              {
+                filename: 'file',
+              },
+            ],
+          },
+        }),
+      },
+    }
+
+    /* Execution */
+
+    const repository: GithubRepository = {
+      repo: 'test-repo',
+      owner: 'test-owner',
+    }
+
+    const res = await getCommitsSinceLastRelease(git as any, repository)
+
+    /* Tests */
+
+    expect(res).toEqual({ status: 'err', message: 'pass' })
+    expect(git.repos.getLatestRelease).toBeCalledWith(repository)
+    expect(git.repos.getLatestRelease).toBeCalledTimes(1)
+    expect(git.repos.listCommits).toBeCalledTimes(1)
+    expect(git.repos.getCommit).toBeCalledTimes(0)
+  })
+
+  test('getCommitsSinceLatestRelease correctly reports error while listing commits', async () => {
+    /* Mocks */
+
+    const publishDate = new Date().toDateString()
+
+    const git = {
+      repos: {
+        getLatestRelease: jest.fn().mockResolvedValue({
+          data: {
+            published_at: publishDate,
+          },
+        }),
+        listCommits: jest.fn().mockResolvedValueOnce({
+          data: new Array(50).fill({
+            sha: 'sha',
+          }),
+        }),
+        getCommit: jest.fn().mockImplementation(() => {
+          throw new Error('pass')
+        }),
+      },
+    }
+
+    /* Execution */
+
+    const repository: GithubRepository = {
+      repo: 'test-repo',
+      owner: 'test-owner',
+    }
+
+    const res = await getCommitsSinceLastRelease(git as any, repository)
+
+    /* Tests */
+
+    expect(res).toEqual({ status: 'err', message: 'pass' })
+    expect(git.repos.getLatestRelease).toBeCalledWith(repository)
+    expect(git.repos.getLatestRelease).toBeCalledTimes(1)
+    expect(git.repos.listCommits).toBeCalledTimes(1)
+    expect(git.repos.getCommit).toBeCalledTimes(50)
+  })
+
   test('getCommitsSinceLatestRelease finds correct commits', async () => {
     /* Mocks */
 
@@ -59,8 +198,9 @@ describe('github', () => {
 
     /* Tests */
 
-    expect(res).toEqual(
-      new Array(150).fill({
+    expect(res).toEqual({
+      status: 'ok',
+      commits: new Array(150).fill({
         sha: 'sha',
         message: '',
         body: '',
@@ -70,15 +210,16 @@ describe('github', () => {
           },
         ],
       }),
-    )
+    })
     expect(git.repos.getLatestRelease).toBeCalledWith(repository)
-    expect(git.repos.getCommit).toBeCalledTimes(150)
     expect(git.repos.getCommit).toBeCalledWith({
       owner: 'test-owner',
       repo: 'test-repo',
       sha: 'sha',
     })
+    expect(git.repos.getLatestRelease).toBeCalledTimes(1)
     expect(git.repos.listCommits).toBeCalledTimes(2)
+    expect(git.repos.getCommit).toBeCalledTimes(150)
   })
 
   test('createGithubRelease correctly creates a Github release', async () => {

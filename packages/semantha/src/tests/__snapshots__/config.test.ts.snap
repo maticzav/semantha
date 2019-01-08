@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`configuration getConfigurationFrom finds correct configuration 1`] = `
+Object {
+  "config": Object {
+    "repository": Object {
+      "owner": "maticzav",
+      "repo": "maticzav/semantha",
+    },
+    "workspaces": Array [
+      Object {
+        "path": "/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-a",
+        "pkg": Object {
+          "dependencies": Object {
+            "package-b": "1.0.2",
+            "something": "1.0.0",
+          },
+          "devDependencies": Object {
+            "devit": "1.0.0",
+            "package-c": "2.0.0",
+          },
+          "name": "package-a",
+          "version": "1.0.0",
+        },
+      },
+      Object {
+        "path": "/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-b",
+        "pkg": Object {
+          "dependencies": Object {
+            "package-c": "2.0.0",
+            "something": "1.0.0",
+          },
+          "devDependencies": Object {
+            "devit": "1.0.0",
+          },
+          "name": "package-b",
+          "version": "1.0.2",
+        },
+      },
+      Object {
+        "path": "/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-c",
+        "pkg": Object {
+          "dependencies": Object {
+            "something": "1.0.0",
+          },
+          "devDependencies": Object {
+            "devit": "1.0.0",
+          },
+          "name": "package-c",
+          "version": "1.0.0",
+        },
+      },
+    ],
+  },
+  "status": "ok",
+}
+`;

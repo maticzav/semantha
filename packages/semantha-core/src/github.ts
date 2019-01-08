@@ -29,19 +29,25 @@ export interface GithubFile {
 export async function getCommitsSinceLastRelease(
   github: Octokit,
   repository: GithubRepository,
-): Promise<GithubCommit[]> {
-  /** Finds the latest release. */
-  const release = await github.repos.getLatestRelease(repository)
+): Promise<
+  { status: 'ok'; commits: GithubCommit[] } | { status: 'err'; message: string }
+> {
+  try {
+    /** Finds the latest release. */
+    const release = await github.repos.getLatestRelease(repository)
 
-  /** Gathers commits since latest release */
-  const commits = await getCommitsSince(release.data.published_at)
+    /** Gathers commits since latest release */
+    const commits = await getCommitsSince(release.data.published_at)
 
-  /** Hydrate commit information */
-  const hydratedCommits = Promise.all(
-    commits.map(commit => hydrateCommit(commit.sha)),
-  )
+    /** Hydrate commit information */
+    const hydratedCommits = await Promise.all(
+      commits.map(commit => hydrateCommit(commit.sha)),
+    )
 
-  return hydratedCommits
+    return { status: 'ok', commits: hydratedCommits }
+  } catch (err) {
+    return { status: 'err', message: err.message }
+  }
 
   /**
    * Helper functions

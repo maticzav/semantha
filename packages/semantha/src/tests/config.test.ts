@@ -60,46 +60,6 @@ describe('configuration', () => {
     const cwd = path.resolve(__dirname, './__fixtures__/workspaces/valid/')
     const config = await getConfigurationFrom(cwd)
 
-    expect(config).toEqual({
-      status: 'ok',
-      config: {
-        repository: {
-          owner: 'maticzav',
-          repo: 'maticzav/semantha',
-        },
-        workspaces: [
-          {
-            path:
-              '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-a',
-            pkg: {
-              name: 'package-a',
-              version: '0.0.0',
-              dependencies: {},
-              devDependencies: {},
-            },
-          },
-          {
-            path:
-              '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-b',
-            pkg: {
-              name: 'package-b',
-              version: '0.0.0',
-              dependencies: {},
-              devDependencies: {},
-            },
-          },
-          {
-            path:
-              '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/valid/packages/package-c',
-            pkg: {
-              name: 'package-c',
-              version: '0.0.0',
-              dependencies: {},
-              devDependencies: {},
-            },
-          },
-        ],
-      },
-    })
+    expect(config).toMatchSnapshot()
   })
 })

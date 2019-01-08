@@ -12,6 +12,10 @@ import { publish } from './npm'
 import { filterMap } from './utils'
 import { prepareWorkspace } from './version'
 
+export interface Options {
+  dryRun: boolean
+}
+
 export interface Report {
   configuration: Configuration
   releases: SemanthaRelease[]
@@ -24,6 +28,7 @@ export interface Report {
  */
 export async function manage(
   cwd: string,
+  options: Options,
 ): Promise<
   { status: 'ok'; report: Report } | { status: 'err'; message: string }
 > {
@@ -60,19 +65,38 @@ export async function manage(
     configuration.config.repository,
   )
 
+  if (commits.status !== 'ok') {
+    return {
+      status: 'err',
+      message: commits.message,
+    }
+  }
+
   /* Analyzes commits */
 
   const releases = await analyzeCommits(
     configuration.config.workspaces,
-    commits,
+    commits.commits,
     releaseRules,
   )
+
+  if (options.dryRun) {
+    return {
+      status: 'ok',
+      report: {
+        configuration: configuration.config,
+        releases: releases,
+      },
+    }
+  }
 
   /* Version */
 
   const preparedPackages = releases.map(release =>
     prepareWorkspace(release, releases),
   )
+
+  // TODO:
 
   if (preparedPackages.some(pkg => pkg.status !== 'ok')) {
     /* Squashes all error messages into one */
