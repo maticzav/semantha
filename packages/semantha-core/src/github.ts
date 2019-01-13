@@ -3,7 +3,6 @@ import * as semver from 'semver'
 
 import { SemanthaRelease } from './analyser'
 import { generateChangelog } from './changelog'
-import * as constants from './constants'
 import { filterMap } from './utils'
 import { getNextVersion } from './version'
 
@@ -152,6 +151,7 @@ export async function getLatestPackageVersionFromGitReleases(
 ): Promise<
   { status: 'ok'; latestVersion: string } | { status: 'err'; message: string }
 > {
+  const firstVersion = '0.0.0'
   const releasesPerPage = 50
 
   const releases = await github.repos.listReleases({
@@ -165,6 +165,11 @@ export async function getLatestPackageVersionFromGitReleases(
     return { status: 'err', message: 'There was a problem accessing Github.' }
   }
 
+  /**
+   * Parse tags and remove ones which don't follow
+   * semantic release conventions or do not impact the investigated
+   * package.
+   */
   const releasedVersions = filterMap(release => {
     if (release.tag_name.startsWith(`${pkg}@`)) {
       return semver.valid(release.tag_name.replace(`${pkg}@`, ''))
@@ -173,9 +178,13 @@ export async function getLatestPackageVersionFromGitReleases(
     }
   }, releases.data)
 
+  /**
+   * Recursively finds latest version by comparing current version
+   * with investigated one, starting from constants.firstVersion.
+   */
   const latestVersion = releasedVersions.reduce(
     (acc, version) => semver.maxSatisfying([acc, version], '*'),
-    constants.firstVersion,
+    firstVersion,
   )
 
   /**
@@ -184,7 +193,7 @@ export async function getLatestPackageVersionFromGitReleases(
    * exist more releases then examined.
    */
   if (
-    latestVersion === constants.firstVersion &&
+    latestVersion === firstVersion &&
     releases.data.length === releasesPerPage
   ) {
     return getLatestPackageVersionFromGitReleases(

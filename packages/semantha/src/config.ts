@@ -74,10 +74,10 @@ export async function getConfigurationFrom(
   ): { status: 'ok'; repo: GithubRepository } | { status: 'err' } {
     const repository = parseGithubUrl(url)
 
-    if (repository && repository.owner && repository.repo) {
+    if (repository && repository.owner && repository.name) {
       return {
         status: 'ok',
-        repo: { owner: repository.owner, repo: repository.repo },
+        repo: { owner: repository.owner, repo: repository.name },
       }
     } else {
       return { status: 'err' }

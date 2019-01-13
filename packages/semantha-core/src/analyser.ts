@@ -1,5 +1,5 @@
 import { GithubCommit } from './github'
-import { releaseTypes, SemanthaVersion } from './constants'
+import { SemanthaRule, SemanthaReleaseType, releaseTypes } from './rules'
 import { filterMap } from './utils'
 
 export type Dependency = {
@@ -24,14 +24,9 @@ export interface Workspace {
   pkg: Package
 }
 
-export interface SemanthaRule {
-  regex: RegExp
-  releaseType: SemanthaVersion
-}
-
 export interface SemanthaRelease {
   workspace: Workspace
-  releaseType: SemanthaVersion
+  releaseType: SemanthaReleaseType
   impactingCommits: GithubCommit[]
 }
 
@@ -102,19 +97,22 @@ export function analyzeCommits(
     workspace: Workspace
     commits: GithubCommit[]
   }): SemanthaRelease {
-    const calculatedReleaseType = rules.reduce((acc, rule) => {
-      /**
-       * Try to match all commit rules and apply the highest.
-       */
-      if (
-        commits.some(commit => rule.regex.test(commit.message)) &&
-        rule.releaseType > acc
-      ) {
-        return rule.releaseType
-      } else {
-        return acc
-      }
-    }, releaseTypes.IGNORE)
+    const calculatedReleaseType = rules.reduce<SemanthaReleaseType>(
+      (acc, rule) => {
+        /**
+         * Try to match all commit rules and apply the highest.
+         */
+        if (
+          commits.some(commit => rule.regex.test(commit.message)) &&
+          releaseTypes[rule.releaseType.type] > releaseTypes[acc.type]
+        ) {
+          return rule.releaseType
+        } else {
+          return acc
+        }
+      },
+      { type: 'ignore' },
+    )
 
     return {
       workspace: workspace,
@@ -165,7 +163,10 @@ export function analyzeCommits(
           )
 
           /* Update releaseType if it impacts the current package */
-          if (dependencyRelease.releaseType > acc) {
+          if (
+            releaseTypes[dependencyRelease.releaseType.type] >
+            releaseTypes[acc.type]
+          ) {
             return dependencyRelease.releaseType
           } else {
             return acc

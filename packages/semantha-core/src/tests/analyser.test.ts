@@ -1,10 +1,4 @@
-import {
-  Workspace,
-  GithubCommit,
-  SemanthaRule,
-  analyzeCommits,
-  releaseTypes,
-} from '..'
+import { Workspace, GithubCommit, SemanthaRule, analyzeCommits } from '..'
 import { SemanthaRelease } from '../analyser'
 
 describe('analyser', () => {
@@ -241,9 +235,9 @@ describe('analyser', () => {
     ]
 
     const rules: SemanthaRule[] = [
-      { regex: new RegExp('fix:'), releaseType: releaseTypes.FIX },
-      { regex: new RegExp('feat:'), releaseType: releaseTypes.MINOR },
-      { regex: new RegExp('perf:'), releaseType: releaseTypes.MAJOR },
+      { regex: new RegExp('fix:'), releaseType: { type: 'patch' } },
+      { regex: new RegExp('feat:'), releaseType: { type: 'minor' } },
+      { regex: new RegExp('perf:'), releaseType: { type: 'major' } },
     ]
 
     const analysis = analyzeCommits(Object.values(workspaces), commits, rules)
@@ -274,12 +268,12 @@ describe('analyser', () => {
             sha: '',
           },
         ],
-        releaseType: 3,
+        releaseType: { type: 'major' },
         workspace: workspaces['package-a'],
       },
       {
         impactingCommits: [],
-        releaseType: 1,
+        releaseType: { type: 'patch' },
         workspace: workspaces['package-b'],
       },
       {
@@ -291,12 +285,12 @@ describe('analyser', () => {
             sha: '',
           },
         ],
-        releaseType: 2,
+        releaseType: { type: 'minor' },
         workspace: workspaces['package-c'],
       },
       {
         impactingCommits: [],
-        releaseType: 0,
+        releaseType: { type: 'ignore' },
         workspace: workspaces['package-d'],
       },
       {
@@ -312,17 +306,17 @@ describe('analyser', () => {
             sha: '',
           },
         ],
-        releaseType: 1,
+        releaseType: { type: 'patch' },
         workspace: workspaces['package-e'],
       },
       {
         impactingCommits: [],
-        releaseType: 1,
+        releaseType: { type: 'patch' },
         workspace: workspaces['package-f'],
       },
       {
         impactingCommits: [],
-        releaseType: 1,
+        releaseType: { type: 'patch' },
         workspace: workspaces['package-g'],
       },
     ] as SemanthaRelease[])

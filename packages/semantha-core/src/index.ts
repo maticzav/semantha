@@ -1,15 +1,12 @@
+export { analyzeCommits, Workspace, Package, SemanthaRelease } from './analyser'
+export {} from './changelog'
 export {
-  analyzeCommits,
-  Workspace,
-  Package,
-  SemanthaRelease,
-  SemanthaRule,
-} from './analyser'
-export { releaseTypes, SemanthaVersion } from './constants'
-export {
+  createGithubRelease,
   getCommitsSinceLastRelease,
+  getLatestPackageVersionFromGitReleases,
   GithubFile,
   GithubCommit,
   GithubRepository,
 } from './github'
-export { versionWorkspace, getNextVersion } from './version'
+export { SemanthaRule, SemanthaReleaseType } from './rules'
+export { getNextVersion } from './version'
