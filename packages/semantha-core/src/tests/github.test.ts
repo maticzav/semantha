@@ -254,7 +254,7 @@ describe('github', () => {
           sha: '',
         },
       ],
-      releaseType: 2,
+      releaseType: { type: 'minor' },
       workspace: {
         path: '/packages/package-c',
         pkg: {
