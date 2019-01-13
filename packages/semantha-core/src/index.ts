@@ -1,4 +1,10 @@
-export { analyzeCommits, Workspace, Package, SemanthaRelease } from './analyser'
+export {
+  analyzeCommits,
+  Workspace,
+  Package,
+  Dependency,
+  SemanthaRelease,
+} from './analyser'
 export {} from './changelog'
 export {
   createGithubRelease,
