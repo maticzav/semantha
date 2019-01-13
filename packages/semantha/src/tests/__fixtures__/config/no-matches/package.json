@@ -1,0 +1,8 @@
+{
+  "name": "config-missing-repo",
+  "repository": "https://github.com/maticzav/semantha",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

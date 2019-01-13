@@ -4,27 +4,41 @@ import {
   SemanthaRule,
   getCommitsSinceLastRelease,
   analyzeCommits,
-  constants,
+  getLatestPackageVersionFromGitReleases,
 } from 'semantha-core'
-
-import { Configuration, getConfigurationFrom } from './config'
-import { publish } from './npm'
+import { Configuration, getConfiguration } from './config'
+import { publish, loadPackage, Package } from './npm'
 import { filterMap } from './utils'
-import { prepareWorkspace } from './version'
 
 export interface Options {
   dryRun: boolean
+  registry?: string
 }
 
 export interface Report {
   configuration: Configuration
   releases: SemanthaRelease[]
+  options: Options
 }
 
 /**
  *
  * Manager
  *
+ */
+
+/**
+ * release rules define how commits should affect releases.
+ */
+
+const releaseRules: SemanthaRule[] = []
+
+/**
+ *
+ * Manager manges the execution process.
+ *
+ * @param cwd
+ * @param options
  */
 export async function manage(
   cwd: string,
@@ -38,14 +52,18 @@ export async function manage(
     return { status: 'err', message: 'Missing Github credentials!' }
   }
 
-  /* Semantha configuration */
+  if (!options.dryRun && !process.env.NPM_TOKEN) {
+    return { status: 'err', message: 'Missing NPM credentials!' }
+  }
 
-  const configuration = await getConfigurationFrom(cwd)
+  /* Configuration */
+
+  const configuration = await getConfiguration(cwd)
 
   if (configuration.status === 'err') {
     return {
       status: 'err',
-      message: configuration.message,
+      message: `Configuration error: ${configuration.message}`,
     }
   }
 
@@ -58,6 +76,36 @@ export async function manage(
     token: process.env.GITHUB_TOKEN,
   })
 
+  /* Load packages */
+
+  const packages: Array<
+    Promise<{ status: 'err'; message: string }>
+  > = configuration.config.workspaces.map(async path => {
+    const pkg = await loadPackage(path)
+
+    if (pkg.status === 'err') {
+      return {
+        status: 'err',
+        message: `Error loading package: ${pkg.message}`,
+      }
+    }
+
+    const pkgVersion = await getLatestPackageVersionFromGitReleases(
+      client,
+      configuration.config.repository,
+      pkg.pkg.name,
+    )
+
+    if (pkgVersion.status === 'err') {
+      return {
+        status: 'err',
+        message: `Error determining package version: ${pkgVersion.message}`,
+      }
+    }
+
+    return { status: 'err', message: '' }
+  })
+
   /** Fetch commits from last release */
 
   const commits = await getCommitsSinceLastRelease(
@@ -68,17 +116,13 @@ export async function manage(
   if (commits.status !== 'ok') {
     return {
       status: 'err',
-      message: commits.message,
+      message: `Error loading commits: ${commits.message}`,
     }
   }
 
   /* Analyzes commits */
 
-  const releases = await analyzeCommits(
-    configuration.config.workspaces,
-    commits.commits,
-    releaseRules,
-  )
+  const releases = await analyzeCommits(packages, commits.commits, releaseRules)
 
   /* Return analysis on dry run */
 
@@ -88,27 +132,9 @@ export async function manage(
       report: {
         configuration: configuration.config,
         releases: releases,
+        options: options,
       },
     }
-  }
-
-  /* Version */
-
-  const preparedPackages = releases.map(release =>
-    prepareWorkspace(release, releases),
-  )
-
-  if (preparedPackages.some(pkg => pkg.status !== 'ok')) {
-    /* Squashes all error messages into one */
-    const message = filterMap(pkg => {
-      if (pkg.status === 'ok') {
-        return null
-      } else {
-        return pkg.message
-      }
-    }, preparedPackages).join('\n')
-
-    return { status: 'err', message: message }
   }
 
   /* Publish */
@@ -137,40 +163,7 @@ export async function manage(
     report: {
       configuration: configuration.config,
       releases: releases,
+      options: options,
     },
   }
 }
-
-/**
- *
- * Rules
- *
- * - taken from semantic-release/commit-analyser
- */
-const releaseRules: SemanthaRule[] = [
-  // Angular
-  { regex: new RegExp('fedat'), release: constants.MINOR },
-  { regex: new RegExp('fidx'), release: constants.PATCH },
-  { regex: new RegExp('pedrf'), release: constants.PATCH },
-  // Atom
-  { regex: new RegExp(':racehorse:'), release: constants.PATCH },
-  { regex: new RegExp(':bug:'), release: constants.PATCH },
-  { regex: new RegExp(':penguin:'), release: constants.PATCH },
-  { regex: new RegExp(':apple:'), release: constants.PATCH },
-  { regex: new RegExp(':checkered_flag:'), release: constants.PATCH },
-  // Ember
-  { regex: new RegExp('BUGFIX'), release: constants.PATCH },
-  { regex: new RegExp('FEATURE'), release: constants.MINOR },
-  { regex: new RegExp('SECURITY'), release: constants.PATCH },
-  // ESLint
-  { regex: new RegExp('Breaking'), release: constants.MAJOR },
-  { regex: new RegExp('Fix'), release: constants.PATCH },
-  { regex: new RegExp('Update'), release: constants.MINOR },
-  { regex: new RegExp('New'), release: constants.MINOR },
-  // Express
-  { regex: new RegExp('perf'), release: constants.PATCH },
-  { regex: new RegExp('deps'), release: constants.PATCH },
-  // JSHint
-  { regex: new RegExp('FEAT'), release: constants.MINOR },
-  { regex: new RegExp('FIX'), release: constants.PATCH },
-]

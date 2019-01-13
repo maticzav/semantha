@@ -1,3 +1,2 @@
-export { getConfigurationFrom } from './config'
-export { publish, PublishOptions } from './npm'
-export { prepareWorkspace } from './version'
+export { getConfiguration } from './config'
+export { publish, loadPackage, applyVersionsToPackage } from './npm'

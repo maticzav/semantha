@@ -3,7 +3,6 @@ import { manage } from '../manager'
 import * as semantha from 'semantha-core'
 import * as configuration from '../config'
 import * as npm from '../npm'
-import * as version from '../version'
 
 describe('manager', () => {
   beforeEach(() => {
@@ -18,17 +17,14 @@ describe('manager', () => {
   test('manager reports missing Github token', async () => {
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockImplementation(() => {})
     const getCommitsSinceLastReleaseMock = jest
       .spyOn(semantha, 'getCommitsSinceLastRelease')
       .mockImplementation(() => {})
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
-      .mockImplementation(() => {})
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
       .mockImplementation(() => {})
     const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
@@ -43,10 +39,9 @@ describe('manager', () => {
       message: 'Missing Github credentials!',
     })
 
-    expect(getConfigurationFromMock).toBeCalledTimes(0)
+    expect(loadWorkspacesMock).toBeCalledTimes(0)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(0)
     expect(analyzeCommits).toBeCalledTimes(0)
-    expect(prepareWorkspace).toBeCalledTimes(0)
     expect(publishMock).toBeCalledTimes(0)
   })
 
@@ -55,17 +50,14 @@ describe('manager', () => {
 
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockResolvedValue({ status: 'err', message: 'pass' })
     const getCommitsSinceLastReleaseMock = jest
       .spyOn(semantha, 'getCommitsSinceLastRelease')
       .mockImplementation(() => {})
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
-      .mockImplementation(() => {})
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
       .mockImplementation(() => {})
     const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
@@ -79,10 +71,9 @@ describe('manager', () => {
       status: 'err',
       message: 'pass',
     })
-    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(loadWorkspacesMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(0)
     expect(analyzeCommits).toBeCalledTimes(0)
-    expect(prepareWorkspace).toBeCalledTimes(0)
     expect(publishMock).toBeCalledTimes(0)
   })
 
@@ -91,8 +82,8 @@ describe('manager', () => {
 
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockResolvedValue({
         status: 'ok',
         config: {
@@ -111,9 +102,6 @@ describe('manager', () => {
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
       .mockImplementation(() => {})
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
-      .mockImplementation(() => {})
     const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
     /* Execution */
@@ -126,10 +114,9 @@ describe('manager', () => {
       status: 'err',
       message: 'pass',
     })
-    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(loadWorkspacesMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
     expect(analyzeCommits).toBeCalledTimes(0)
-    expect(prepareWorkspace).toBeCalledTimes(0)
     expect(publishMock).toBeCalledTimes(0)
   })
 
@@ -138,8 +125,8 @@ describe('manager', () => {
 
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockResolvedValue({
         status: 'ok',
         config: {
@@ -158,20 +145,6 @@ describe('manager', () => {
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
       .mockReturnValue(['release', 'release', 'release'])
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'err',
-        message: 'err-1',
-      })
-      .mockReturnValueOnce({
-        status: 'err',
-        message: 'err-2',
-      })
     const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
     /* Execution */
@@ -184,10 +157,9 @@ describe('manager', () => {
       status: 'err',
       message: 'err-1\nerr-2',
     })
-    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(loadWorkspacesMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
     expect(analyzeCommits).toBeCalledTimes(1)
-    expect(prepareWorkspace).toBeCalledTimes(3)
     expect(publishMock).toBeCalledTimes(0)
   })
 
@@ -196,8 +168,8 @@ describe('manager', () => {
 
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockResolvedValue({
         status: 'ok',
         config: {
@@ -216,20 +188,6 @@ describe('manager', () => {
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
       .mockReturnValue(['release', 'release', 'release'])
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
     const publishMock = jest
       .spyOn(npm, 'publish')
       .mockReturnValueOnce({
@@ -255,10 +213,9 @@ describe('manager', () => {
       status: 'err',
       message: 'err-1\nerr-2',
     })
-    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(loadWorkspacesMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
     expect(analyzeCommits).toBeCalledTimes(1)
-    expect(prepareWorkspace).toBeCalledTimes(3)
     expect(publishMock).toBeCalledTimes(3)
   })
 
@@ -267,8 +224,8 @@ describe('manager', () => {
 
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockResolvedValue({
         status: 'ok',
         config: {
@@ -287,20 +244,6 @@ describe('manager', () => {
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
       .mockReturnValue(['release', 'release', 'release'])
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
     const publishMock = jest
       .spyOn(npm, 'publish')
       .mockReturnValueOnce({
@@ -329,10 +272,9 @@ describe('manager', () => {
         releases: ['release', 'release', 'release'],
       },
     })
-    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(loadWorkspacesMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
     expect(analyzeCommits).toBeCalledTimes(1)
-    expect(prepareWorkspace).toBeCalledTimes(0)
     expect(publishMock).toBeCalledTimes(0)
   })
 
@@ -341,8 +283,8 @@ describe('manager', () => {
 
     /* Mocks */
 
-    const getConfigurationFromMock = jest
-      .spyOn(configuration, 'getConfigurationFrom')
+    const loadWorkspacesMock = jest
+      .spyOn(configuration, 'loadWorkspaces')
       .mockResolvedValue({
         status: 'ok',
         config: {
@@ -361,20 +303,6 @@ describe('manager', () => {
     const analyzeCommits = jest
       .spyOn(semantha, 'analyzeCommits')
       .mockReturnValue(['release', 'release', 'release'])
-    const prepareWorkspace = jest
-      .spyOn(version, 'prepareWorkspace')
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
-      .mockReturnValueOnce({
-        status: 'ok',
-        release: 'release',
-      })
     const publishMock = jest
       .spyOn(npm, 'publish')
       .mockReturnValueOnce({
@@ -403,10 +331,9 @@ describe('manager', () => {
         releases: ['release', 'release', 'release'],
       },
     })
-    expect(getConfigurationFromMock).toBeCalledTimes(1)
+    expect(loadWorkspacesMock).toBeCalledTimes(1)
     expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
     expect(analyzeCommits).toBeCalledTimes(1)
-    expect(prepareWorkspace).toBeCalledTimes(3)
     expect(publishMock).toBeCalledTimes(3)
   })
 })

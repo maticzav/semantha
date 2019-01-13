@@ -1,168 +1,143 @@
+import * as fs from 'fs'
 import * as path from 'path'
-import Docker from 'dockerode'
-import getStream from 'get-stream'
-import got from 'got'
-import delay from 'delay'
-import pRetry from 'p-retry'
 
-import { publish } from '../'
+import { loadPackage, applyVersionsToPackage } from '../npm'
+import { SemanthaRelease } from 'semantha-core'
 
 describe('npm', () => {
-  test(
-    'publish publishes workspace correctly',
-    async () => {
-      const { container, url } = await startRegistry()
-
-      const res = await publish(
-        {
-          commits: [],
-          version: 1,
-          workspace: {
-            path: path.resolve(__dirname, './__fixtures__/package/'),
-            pkg: {
-              name: 'package-c',
-              version: '1.0.0',
-              dependencies: {},
-              devDependencies: {},
-            },
-          },
-        },
-        {
-          registry: url,
-        },
-      )
-
-      /* Tests */
-
-      expect(res).toEqual({
-        status: 'ok',
-        release: {
-          commits: [],
-          version: 1,
-          workspace: {
-            path: '/packages/package-c',
-            pkg: {
-              name: 'package-c',
-              version: '1.0.0',
-              dependencies: {},
-              devDependencies: {},
-            },
-          },
-        },
-      })
-
-      stopRegistry(container)
-    },
-    180 * 1000,
-  )
-
-  test('publish reports error correctly', async () => {
-    const res = await publish(
-      {
-        commits: [],
-        version: 1,
-        workspace: {
-          path: path.resolve(__dirname, './__fixtures__/non_existant/'),
-          pkg: {
-            name: 'package-c',
-            version: '1.0.0',
-            dependencies: {},
-            devDependencies: {},
-          },
-        },
-      },
-      {
-        registry: '',
-      },
+  test('loadPackage reports missing name', async () => {
+    const pkgPath = path.resolve(
+      __dirname,
+      './__fixtures__/packages/invalid-name',
     )
+    const pkg = await loadPackage(pkgPath)
 
-    /* Tests */
-
-    expect(res).toEqual({
+    expect(pkg).toEqual({
       status: 'err',
-      message: 'Command failed: npm publish',
+      message: 'Missing package definition.',
     })
   })
-})
+  test('loadPackage reports missing version', async () => {
+    const pkgPath = path.resolve(
+      __dirname,
+      './__fixtures__/packages/invalid-version',
+    )
+    const pkg = await loadPackage(pkgPath)
 
-/* Helper functions */
-
-const IMAGE = 'semanticrelease/npm-registry-docker:latest'
-const SERVER_PORT = 15986
-const COUCHDB_PORT = 5984
-const SERVER_HOST = 'localhost'
-const COUCHDB_USER = 'admin'
-const COUCHDB_PASSWORD = 'password'
-const NPM_USERNAME = 'integration'
-const NPM_PASSWORD = 'suchsecure'
-const NPM_EMAIL = 'integration@test.com'
-
-/**
- * Download the `npm-registry-docker` Docker image, create a new container and start it.
- */
-async function startRegistry(): Promise<{
-  container: Docker.Container
-  url: string
-}> {
-  const docker = new Docker()
-
-  await getStream(await docker.pull(IMAGE, {}))
-
-  const container = await docker.createContainer({
-    Tty: true,
-    Image: IMAGE,
-    HostConfig: {
-      PortBindings: {
-        [`${COUCHDB_PORT}/tcp`]: [{ HostPort: `${SERVER_PORT}` }],
-      },
-    },
-    Env: [
-      `COUCHDB_USER=${COUCHDB_USER}`,
-      `COUCHDB_PASSWORD=${COUCHDB_PASSWORD}`,
-    ],
+    expect(pkg).toEqual({
+      status: 'err',
+      message: 'Missing package definition.',
+    })
   })
 
-  await container.start()
-  await delay(4000)
+  test('loadPackage correctly reports error', async () => {
+    const pkgPath = path.resolve(__dirname, './__fixtures__/packages/whatever')
+    const pkg = await loadPackage(pkgPath)
 
-  try {
-    // Wait for the registry to be ready
-    await pRetry(
-      () => got(`http://${SERVER_HOST}:${SERVER_PORT}/registry/_design/app`),
+    expect(pkg).toEqual({
+      status: 'err',
+      message: `Couldn't load package: ENOENT: no such file or directory, open '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/packages/whatever/package.json'`,
+    })
+  })
+
+  test('loadPackage correctly loads package', async () => {
+    const pkgPath = path.resolve(__dirname, './__fixtures__/packages/valid')
+    const pkg = await loadPackage(pkgPath)
+
+    expect(pkg).toEqual({
+      status: 'ok',
+      pkg: {
+        raw: fs.readFileSync(`${pkgPath}/package.json`, 'utf-8'),
+        name: 'package',
+        version: '0.0.0-semantha',
+        dependencies: [
+          {
+            name: 'test-dependency-a',
+            version: '0.0.0-semantha',
+            type: 'dependencies',
+          },
+          {
+            name: 'irrelevant',
+            version: '2.0.0',
+            type: 'dependencies',
+          },
+          {
+            name: 'test-dependency-b',
+            version: '0.0.0-semantha',
+            type: 'devDependencies',
+          },
+          {
+            name: 'test-dependency-c',
+            version: '0.0.0-semantha',
+            type: 'devDependencies',
+          },
+        ],
+      },
+    })
+  })
+
+  test('applyVersionToPackage correctly updates package.json', async () => {
+    const pkgPath = path.resolve(__dirname, './__fixtures__/packages/valid/')
+    const pkg = await loadPackage(pkgPath)
+
+    if (pkg.status === 'err') {
+      fail()
+      return
+    }
+
+    const releases: SemanthaRelease[] = [
       {
-        retries: 7,
-        minTimeout: 1000,
-        factor: 2,
+        impactingCommits: [],
+        releaseType: { type: 'major' },
+        workspace: {
+          path: '/path',
+          pkg: {
+            name: 'package',
+            version: '1.0.0',
+            dependencies: [],
+          },
+        },
       },
-    )
-  } catch (error) {
-    throw new Error(`Couldn't start npm-registry-docker after 2 min`)
-  }
-
-  // Create user
-  await got(
-    `http://${SERVER_HOST}:${SERVER_PORT}/_users/org.couchdb.user:${NPM_USERNAME}`,
-    {
-      json: true,
-      auth: `${COUCHDB_USER}:${COUCHDB_PASSWORD}`,
-      method: 'PUT',
-      body: {
-        _id: `org.couchdb.user:${NPM_USERNAME}`,
-        name: NPM_USERNAME,
-        roles: [],
-        type: 'user',
-        password: NPM_PASSWORD,
-        email: NPM_EMAIL,
+      {
+        impactingCommits: [],
+        releaseType: { type: 'major' },
+        workspace: {
+          path: '/path',
+          pkg: {
+            name: 'test-dependency-a',
+            version: '1.0.0',
+            dependencies: [],
+          },
+        },
       },
-    },
-  )
+      {
+        impactingCommits: [],
+        releaseType: { type: 'ignore' },
+        workspace: {
+          path: '/path',
+          pkg: {
+            name: 'test-dependency-b',
+            version: '1.0.0',
+            dependencies: [],
+          },
+        },
+      },
+      {
+        impactingCommits: [],
+        releaseType: { type: 'prerelease', tag: 'alpha' },
+        workspace: {
+          path: '/path',
+          pkg: {
+            name: 'test-dependency-c',
+            version: '1.0.0',
+            dependencies: [],
+          },
+        },
+      },
+    ]
 
-  const url = `http://${SERVER_HOST}:${SERVER_PORT}/registry/_design/app/_rewrite/`
+    const updated = applyVersionsToPackage(pkg.pkg, releases)
 
-  return { container, url }
-}
-
-async function stopRegistry(container: Docker.Container): Promise<void> {
-  await container.stop()
-  await container.remove()
-}
+    expect(updated).toMatchSnapshot()
+  })
+})

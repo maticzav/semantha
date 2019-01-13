@@ -1,10 +1,10 @@
 import * as path from 'path'
-import { getConfigurationFrom } from '../'
+import { getConfiguration } from '..'
 
 describe('configuration', () => {
-  test('getConfigurationFrom reports missing repository configuration', async () => {
+  test('getConfiguration reports missing repository configuration', async () => {
     const cwd = path.resolve(__dirname, './__fixtures__/config/no-repository/')
-    const config = await getConfigurationFrom(cwd)
+    const config = await getConfiguration(cwd)
 
     expect(config).toEqual({
       status: 'err',
@@ -12,9 +12,9 @@ describe('configuration', () => {
     })
   })
 
-  test('getConfigurationFrom reports missing workspaces configuration', async () => {
+  test('getConfiguration reports missing workspaces configuration', async () => {
     const cwd = path.resolve(__dirname, './__fixtures__/config/no-workspaces/')
-    const config = await getConfigurationFrom(cwd)
+    const config = await getConfiguration(cwd)
 
     expect(config).toEqual({
       status: 'err',
@@ -22,44 +22,62 @@ describe('configuration', () => {
     })
   })
 
-  test('getConfigurationFrom reports faulty repository definition', async () => {
+  test('getConfiguration reports misconfigured repository', async () => {
     const cwd = path.resolve(__dirname, './__fixtures__/config/invalid/')
-    const config = await getConfigurationFrom(cwd)
+    const config = await getConfiguration(cwd)
 
     expect(config).toEqual({
       status: 'err',
-      message: "Something's wrong with your repository definition.",
+      message: `Couldn't parse provided repository faulty repo`,
     })
   })
 
-  test('getConfigurationFrom reports non-existant configuration', async () => {
-    const cwd = path.resolve(__dirname, './__fixtures__/config/doesnnotexist/')
-    const config = await getConfigurationFrom(cwd)
-
-    expect(config).toEqual({
-      status: 'err',
-      message:
-        "ENOENT: no such file or directory, open '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/config/doesnnotexist/package.json'",
-    })
-  })
-
-  test('getConfigurationFrom reports invalid workspace configuration', async () => {
-    const cwd = path.resolve(__dirname, './__fixtures__/workspaces/invalid/')
-    const workspaces = await getConfigurationFrom(cwd)
+  test('getConfiguration correctly handles errors', async () => {
+    const cwd = path.resolve(__dirname, './__fixtures__/config/whatever/')
+    const workspaces = await getConfiguration(cwd)
 
     /* Tests */
 
     expect(workspaces).toEqual({
       status: 'err',
-      message:
-        "ENOENT: no such file or directory, open '/Users/maticzavadlal/Code/sandbox/semantha/packages/semantha/src/tests/__fixtures__/workspaces/invalid/package/package.json'",
+      message: `ENOENT: no such file or directory, open '${cwd}/package.json'`,
     })
   })
 
-  test('getConfigurationFrom finds correct configuration', async () => {
-    const cwd = path.resolve(__dirname, './__fixtures__/workspaces/valid/')
-    const config = await getConfigurationFrom(cwd)
+  test('getConfiguration errors on no-workspace matches', async () => {
+    const cwd = path.resolve(__dirname, './__fixtures__/config/no-matches/')
+    const workspaces = await getConfiguration(cwd)
 
-    expect(config).toMatchSnapshot()
+    /* Tests */
+
+    expect(workspaces).toEqual({
+      status: 'err',
+      message: "Couldn't find any workspace.",
+    })
+  })
+
+  test('getConfiguration loads correct configuration', async () => {
+    const cwd = path.resolve(__dirname, './__fixtures__/config/valid/')
+    const config = await getConfiguration(cwd)
+
+    expect(config).toEqual({
+      config: {
+        repository: {
+          owner: 'maticzav',
+          repo: 'semantha',
+        },
+        workspaces: [
+          path.resolve(
+            __dirname,
+            './__fixtures__/config/valid/packages/package-a',
+          ),
+          path.resolve(
+            __dirname,
+            './__fixtures__/config/valid/packages/package-b',
+          ),
+        ],
+      },
+      status: 'ok',
+    })
   })
 })

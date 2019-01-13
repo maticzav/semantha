@@ -1,58 +1,13 @@
-declare module 'read-pkg' {
+declare module 'libnpmpublish' {
   interface Options {
-    cwd?: string
-    normalize?: boolean
+    npmVersion?: string
+    token?: string
   }
 
-  /** Taken from @types/normalize-package-data */
-  interface Input {
-    [k: string]: any
-  }
-
-  interface Person {
-    name?: string
-    email?: string
-    url?: string
-  }
-
-  interface Package {
-    [k: string]: any
-    name: string
-    version: string
-    files?: string[]
-    bin?: { [k: string]: string }
-    man?: string[]
-    keywords?: string[]
-    author?: Person
-    maintainers?: Person[]
-    contributors?: Person[]
-    bundleDependencies?: { [name: string]: string }
-    dependencies?: { [name: string]: string }
-    devDependencies?: { [name: string]: string }
-    optionalDependencies?: { [name: string]: string }
-    description?: string
-    engines?: { [type: string]: string }
-    license?: string
-    repository?: { type: string; url: string }
-    bugs?: { url: string; email?: string } | { url?: string; email: string }
-    homepage?: string
-    scripts?: { [k: string]: string }
-    readme: string
-    _id: string
-    /** Workspaces definition */
-    workspaces?: string[]
-  }
-
-  export default function(options?: Options): Promise<Package>
-  export function sync(options?: Options): Package
-}
-
-declare module 'write-pkg' {
-  export default function(
-    path: string,
-    data: { [k: string]: any },
+  export function publish(
+    pkg: object,
+    tar: Buffer,
+    options?: Options,
   ): Promise<void>
-  export default function(data: { [k: string]: any }): Promise<void>
-  export function sync(path: string, data: { [k: string]: any }): void
-  export function sync(data: { [k: string]: any }): void
+  export function unpublish(spec: string, options?: Options): Promise<void>
 }

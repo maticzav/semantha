@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "test-dependency-b": "0.0.0-semantha",
+    "test-dependency-c": "0.0.0-semantha"
+  },
+  "name": "package",
+  "scripts": {},
+  "version": "0.0.0-semantha",
+  "dependencies": {
+    "test-dependency-a": "0.0.0-semantha",
+    "irrelevant": "2.0.0"
+  }
+}
