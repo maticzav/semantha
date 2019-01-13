@@ -1,8 +1,15 @@
 import * as fs from 'fs'
 import globby from 'globby'
+import Octokit from '@octokit/rest'
 import parseGithubUrl from 'parse-github-url'
 import * as path from 'path'
-import { GithubRepository } from 'semantha-core'
+import {
+  GithubRepository,
+  Workspace,
+  getLatestPackageVersionFromGitReleases,
+} from 'semantha-core'
+
+import { loadPackage } from './npm'
 
 export interface Configuration {
   repository: GithubRepository
@@ -74,5 +81,47 @@ export async function getConfiguration(
     }
   } catch (err) {
     return { status: 'err', message: err.message }
+  }
+}
+
+export async function loadWorkspace(
+  github: Octokit,
+  repository: GithubRepository,
+  workspace: string,
+): Promise<
+  { status: 'ok'; workspace: Workspace } | { status: 'err'; message: string }
+> {
+  const pkg = await loadPackage(workspace)
+
+  if (pkg.status === 'err') {
+    return {
+      status: 'err',
+      message: pkg.message,
+    }
+  }
+
+  const latestVersion = await getLatestPackageVersionFromGitReleases(
+    github,
+    repository,
+    pkg.pkg.name,
+  )
+
+  if (latestVersion.status === 'err') {
+    return {
+      status: 'err',
+      message: latestVersion.message,
+    }
+  }
+
+  return {
+    status: 'ok',
+    workspace: {
+      path: workspace,
+      pkg: {
+        name: pkg.pkg.name,
+        version: latestVersion.latestVersion,
+        dependencies: pkg.pkg.dependencies,
+      },
+    },
   }
 }

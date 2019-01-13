@@ -29,3 +29,23 @@ export function filterMap<T, Y>(
     return x !== null && x !== undefined
   }
 }
+
+/**
+ *
+ * Merges multiple errors into one.
+ *
+ * @param xs
+ */
+export function mergeErrors<T>(
+  xs: ({ status: 'ok' } & T | { status: 'err'; message: string })[],
+): { status: 'err'; message: string } {
+  const message = filterMap(x => {
+    if (x.status === 'ok') {
+      return null
+    } else {
+      return x.message
+    }
+  }, xs).join('\n')
+
+  return { status: 'err', message: message }
+}

@@ -5,10 +5,11 @@ import {
   getCommitsSinceLastRelease,
   analyzeCommits,
   getLatestPackageVersionFromGitReleases,
+  Workspace,
 } from 'semantha-core'
-import { Configuration, getConfiguration } from './config'
+import { Configuration, getConfiguration, loadWorkspace } from './config'
 import { publish, loadPackage, Package } from './npm'
-import { filterMap } from './utils'
+import { mergeErrors } from './utils'
 
 export interface Options {
   dryRun: boolean
@@ -78,33 +79,15 @@ export async function manage(
 
   /* Load packages */
 
-  const packages: Array<
-    Promise<{ status: 'err'; message: string }>
-  > = configuration.config.workspaces.map(async path => {
-    const pkg = await loadPackage(path)
+  const packages = await Promise.all(
+    configuration.config.workspaces.map(workspace =>
+      loadWorkspace(client, configuration.config.repository, workspace),
+    ),
+  )
 
-    if (pkg.status === 'err') {
-      return {
-        status: 'err',
-        message: `Error loading package: ${pkg.message}`,
-      }
-    }
-
-    const pkgVersion = await getLatestPackageVersionFromGitReleases(
-      client,
-      configuration.config.repository,
-      pkg.pkg.name,
-    )
-
-    if (pkgVersion.status === 'err') {
-      return {
-        status: 'err',
-        message: `Error determining package version: ${pkgVersion.message}`,
-      }
-    }
-
-    return { status: 'err', message: '' }
-  })
+  if (packages.some(pkg => pkg.status !== 'ok')) {
+    return mergeErrors(packages)
+  }
 
   /** Fetch commits from last release */
 
@@ -122,7 +105,16 @@ export async function manage(
 
   /* Analyzes commits */
 
-  const releases = await analyzeCommits(packages, commits.commits, releaseRules)
+  const packagesForAnalysis = (packages as {
+    status: 'ok'
+    workspace: Workspace
+  }[]).map(({ workspace }) => workspace)
+
+  const releases = await analyzeCommits(
+    packagesForAnalysis,
+    commits.commits,
+    releaseRules,
+  )
 
   /* Return analysis on dry run */
 
@@ -144,16 +136,7 @@ export async function manage(
   )
 
   if (publishedPackages.some(pkg => pkg.status !== 'ok')) {
-    /* Squashes all error messages into one */
-    const message = filterMap(pkg => {
-      if (pkg.status === 'ok') {
-        return null
-      } else {
-        return pkg.message
-      }
-    }, publishedPackages).join('\n')
-
-    return { status: 'err', message: message }
+    return mergeErrors(publishedPackages)
   }
 
   /* Return report */
