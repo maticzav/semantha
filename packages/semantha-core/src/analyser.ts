@@ -1,12 +1,22 @@
 import { GithubCommit } from './github'
-import { constants, SemanthaVersion } from './constants'
+import { releaseTypes, SemanthaVersion } from './constants'
 import { filterMap } from './utils'
+
+export type Dependency = {
+  name: string
+  type:
+    | 'dependencies'
+    | 'devDependencies'
+    | 'optionalDependencies'
+    | 'peerDependencies'
+    | 'bundleDependencies'
+  version: string
+}
 
 export interface Package {
   name: string
   version: string
-  dependencies: { [dependency: string]: string }
-  devDependencies: { [dependency: string]: string }
+  dependencies: Dependency[]
 }
 
 export interface Workspace {
@@ -16,13 +26,13 @@ export interface Workspace {
 
 export interface SemanthaRule {
   regex: RegExp
-  release: SemanthaVersion
+  releaseType: SemanthaVersion
 }
 
 export interface SemanthaRelease {
-  version: SemanthaVersion
   workspace: Workspace
-  commits: GithubCommit[]
+  releaseType: SemanthaVersion
+  impactingCommits: GithubCommit[]
 }
 
 /**
@@ -44,21 +54,21 @@ export function analyzeCommits(
   )
 
   /** Calculate next version from commit messages */
-  const workspaceVersionsFromCommitMessages = workspacesWithImpactingCommits.map(
+  const workspaceReleasesFromCommitMessages = workspacesWithImpactingCommits.map(
     workspaceWitnImpactingCommits =>
-      analyseCommitMessages(workspaceWitnImpactingCommits),
+      calculateReleaseFromCommits(workspaceWitnImpactingCommits),
   )
 
   /** Accounts for changes in peer dependencies */
-  const workspaceVersionsFromDependencies = workspaceVersionsFromCommitMessages.map(
+  const workspaceReleasesFromDependencies = workspaceReleasesFromCommitMessages.map(
     releaseFromCommitMessages =>
-      analyseDependecyVersioning(
+      calculateReleaseFromDependencies(
         releaseFromCommitMessages,
-        workspaceVersionsFromCommitMessages,
+        workspaceReleasesFromCommitMessages,
       ),
   )
 
-  return workspaceVersionsFromDependencies
+  return workspaceReleasesFromDependencies
 
   /**
    * Helper functions
@@ -85,81 +95,96 @@ export function analyzeCommits(
   /**
    * Analyses commits messages to determine next version of the package.
    */
-  function analyseCommitMessages({
+  function calculateReleaseFromCommits({
     workspace,
     commits,
   }: {
     workspace: Workspace
     commits: GithubCommit[]
   }): SemanthaRelease {
-    const version = rules.reduce((acc, rule) => {
+    const calculatedReleaseType = rules.reduce((acc, rule) => {
+      /**
+       * Try to match all commit rules and apply the highest.
+       */
       if (
         commits.some(commit => rule.regex.test(commit.message)) &&
-        rule.release > acc
+        rule.releaseType > acc
       ) {
-        return rule.release
+        return rule.releaseType
       } else {
         return acc
       }
-    }, constants.IGNORE)
+    }, releaseTypes.IGNORE)
 
     return {
-      version: version,
       workspace: workspace,
-      commits: commits,
+      releaseType: calculatedReleaseType,
+      impactingCommits: commits,
     }
   }
 
   /**
    *
-   * Determines the actual version based on dependencies.
+   * Recursively determine the actual version of the release by calculting
+   * versionTypes of dependencies.
    *
    * @param releases
    */
-  function analyseDependecyVersioning(
+  function calculateReleaseFromDependencies(
     release: SemanthaRelease,
     releases: SemanthaRelease[],
-    path: string[] = [],
+    tree: string[] = [],
   ): SemanthaRelease {
-    /* Merge all dependencies of a workspace */
-    const dependencies: { [name: string]: string } = {
-      ...release.workspace.pkg.dependencies,
-      ...release.workspace.pkg.devDependencies,
-    }
-
-    /* Find related releases */
-    const peerReleases = filterMap(
+    /**
+     * Finds local dependencies by filter-mapping all package dependencies
+     * but only returning the ones which can be found in releases.
+     */
+    const localDependencies = filterMap(
       dependency =>
-        releases.find(release => release.workspace.pkg.name === dependency),
-      Object.keys(dependencies),
+        releases.find(
+          release => release.workspace.pkg.name === dependency.name,
+        ),
+      release.workspace.pkg.dependencies,
     )
 
     /* Analyse releases */
-    const version = peerReleases.reduce((acc, release) => {
-      /* Path doesn't yet include the observed workspace. */
-      if (!path.includes(release.workspace.pkg.name)) {
-        /* Calculate dependency version */
-        const dependency = analyseDependecyVersioning(release, releases, [
-          ...path,
-          release.workspace.pkg.name,
-        ])
 
-        /* Update versioning if it impacts the current package */
-        if (dependency.version > acc) {
-          return dependency.version
+    const calculatedReleaseType = localDependencies.reduce(
+      (acc, dependency) => {
+        /**
+         * Searches the tree to see whether we've come across that dependency
+         * or not. This prevents ciruclar dependencies from breaking
+         * the calcuation.
+         */
+        if (!tree.includes(dependency.workspace.pkg.name)) {
+          /* Calculate dependency releaseType */
+          const dependencyRelease = calculateReleaseFromDependencies(
+            dependency,
+            releases,
+            tree.concat(dependency.workspace.pkg.name),
+          )
+
+          /* Update releaseType if it impacts the current package */
+          if (dependencyRelease.releaseType > acc) {
+            return dependencyRelease.releaseType
+          } else {
+            return acc
+          }
         } else {
+          /**
+           * Ignore ciruclar dependencies because we've already
+           * accounted their version bump once.
+           */
           return acc
         }
-      } else {
-        /* Break circular dependencies. */
-        return acc
-      }
-    }, release.version)
+      },
+      release.releaseType,
+    )
 
     return {
-      version: version,
       workspace: release.workspace,
-      commits: release.commits,
+      releaseType: calculatedReleaseType,
+      impactingCommits: release.impactingCommits,
     }
   }
 }

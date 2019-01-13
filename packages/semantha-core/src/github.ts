@@ -1,7 +1,11 @@
 import * as Octokit from '@octokit/rest'
+import * as semver from 'semver'
+
 import { SemanthaRelease } from './analyser'
-import { getNextVersion } from './version'
 import { generateChangelog } from './changelog'
+import * as constants from './constants'
+import { filterMap } from './utils'
+import { getNextVersion } from './version'
 
 export interface GithubRepository {
   owner: string
@@ -130,6 +134,63 @@ export async function createGithubRelease(
     body: changelog,
     tag_name: tag,
   })
+}
+
+/**
+ *
+ * Finds the latest released version of a package from published Github tags.
+ *
+ * @param github
+ * @param repository
+ * @param pkg
+ */
+export async function getLatestPackageVersionFromGitTags(
+  github: Octokit,
+  repository: GithubRepository,
+  pkg: string,
+  page = 0,
+): Promise<
+  { status: 'ok'; latestVersion: string } | { status: 'err'; message: string }
+> {
+  const releasesPerPage = 50
+
+  const releases = await github.repos.listReleases({
+    repo: repository.repo,
+    owner: repository.owner,
+    page: page,
+    per_page: releasesPerPage,
+  })
+
+  if (releases.status !== 200) {
+    return { status: 'err', message: 'There was a problem accessing Github.' }
+  }
+
+  const releasedVersions = filterMap(release => {
+    if (release.tag_name.startsWith(`${pkg}@`)) {
+      return semver.valid(release.tag_name.replace(`${pkg}@`, ''))
+    } else {
+      return null
+    }
+  }, releases.data)
+
+  const latestVersion = releasedVersions.reduce(
+    (acc, version) => semver.maxSatisfying([acc, version], '*'),
+    constants.firstVersion,
+  )
+
+  /**
+   * Tries to recursively find last version by examining more releases
+   * in case latest calculated version equals first version and there
+   * exist more releases then examined.
+   */
+  if (
+    latestVersion === constants.firstVersion &&
+    releases.data.length === releasesPerPage
+  ) {
+    return getLatestPackageVersionFromGitTags(github, repository, pkg, page + 1)
+  } else {
+    return { status: 'ok', latestVersion: latestVersion }
+  }
 }
 
 // /**

@@ -243,7 +243,7 @@ describe('github', () => {
     }
 
     const _release: SemanthaRelease = {
-      commits: [
+      impactingCommits: [
         {
           body: '',
           files: [{ filename: '/packages/package-c/package.json' }],
@@ -251,14 +251,13 @@ describe('github', () => {
           sha: '',
         },
       ],
-      version: 2,
+      releaseType: 2,
       workspace: {
         path: '/packages/package-c',
         pkg: {
           name: 'package-c',
           version: '1.0.0',
-          dependencies: { irrelavant: '1.0.0', 'package-d': '1.0.0' },
-          devDependencies: { irrelavantDev: '1.0.0' },
+          dependencies: [],
         },
       },
     }

@@ -5,7 +5,7 @@ export {
   SemanthaRelease,
   SemanthaRule,
 } from './analyser'
-export { constants, SemanthaVersion } from './constants'
+export { releaseTypes, SemanthaVersion } from './constants'
 export {
   getCommitsSinceLastRelease,
   GithubFile,

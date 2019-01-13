@@ -3,114 +3,193 @@ import {
   GithubCommit,
   SemanthaRule,
   analyzeCommits,
-  constants,
+  releaseTypes,
 } from '..'
+import { SemanthaRelease } from '../analyser'
 
 describe('analyser', () => {
   test('analyser works as expected', async () => {
     /* Mocks */
-    const workspaces: Workspace[] = [
-      {
+    const workspaces: { [workspace: string]: Workspace } = {
+      'package-a': {
         path: '/packages/package-a',
         pkg: {
           name: 'package-a',
           version: '1.0.0',
-          dependencies: {
-            'package-b': '1.0.0',
-            'package-c': '1.0.0',
-            irrelavant: '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'package-b',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'package-c',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-      {
+      'package-b': {
         path: '/packages/package-b',
         pkg: {
           name: 'package-b',
           version: '1.0.0',
-          dependencies: {
-            irrelavant: '1.0.0',
-            'package-e': '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'package-e',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-      {
+      'package-c': {
         path: '/packages/package-c',
         pkg: {
           name: 'package-c',
           version: '1.0.0',
-          dependencies: {
-            'package-d': '1.0.0',
-            irrelavant: '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'package-d',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-      {
+      'package-d': {
         path: '/packages/package-d',
         pkg: {
           name: 'package-d',
           version: '1.0.0',
-          dependencies: {
-            irrelavant: '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-      {
+      'package-e': {
         path: '/packages/package-e',
         pkg: {
           name: 'package-e',
           version: '1.0.0',
-          dependencies: {
-            irrelavant: '1.0.0',
-            'package-f': '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'package-f',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-      {
+      'package-f': {
         path: '/packages/package-f',
         pkg: {
           name: 'package-f',
           version: '1.0.0',
-          dependencies: {
-            irrelavant: '1.0.0',
-            'package-d': '1.0.0',
-            'package-g': '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'package-d',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'package-g',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-      {
+      'package-g': {
         path: '/packages/package-g',
         pkg: {
           name: 'package-g',
           version: '1.0.0',
-          dependencies: {
-            irrelavant: '1.0.0',
-            'package-b': '1.0.0',
-            'package-d': '1.0.0',
-          },
-          devDependencies: {
-            irrelavantDev: '1.0.0',
-          },
+          dependencies: [
+            {
+              name: 'package-b',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'package-d',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavant',
+              type: 'dependencies',
+              version: '1.0.0',
+            },
+            {
+              name: 'irrelavantDev',
+              type: 'devDependencies',
+              version: '1.0.0',
+            },
+          ],
         },
       },
-    ]
+    }
 
     const commits: GithubCommit[] = [
       {
@@ -162,16 +241,16 @@ describe('analyser', () => {
     ]
 
     const rules: SemanthaRule[] = [
-      { regex: new RegExp('fix:'), release: constants.FIX },
-      { regex: new RegExp('feat:'), release: constants.MINOR },
-      { regex: new RegExp('perf:'), release: constants.MAJOR },
+      { regex: new RegExp('fix:'), releaseType: releaseTypes.FIX },
+      { regex: new RegExp('feat:'), releaseType: releaseTypes.MINOR },
+      { regex: new RegExp('perf:'), releaseType: releaseTypes.MAJOR },
     ]
 
-    const analysis = analyzeCommits(workspaces, commits, rules)
+    const analysis = analyzeCommits(Object.values(workspaces), commits, rules)
 
     expect(analysis).toEqual([
       {
-        commits: [
+        impactingCommits: [
           {
             body: '',
             files: [
@@ -195,38 +274,16 @@ describe('analyser', () => {
             sha: '',
           },
         ],
-        version: 3,
-        workspace: {
-          path: '/packages/package-a',
-          pkg: {
-            dependencies: {
-              irrelavant: '1.0.0',
-              'package-b': '1.0.0',
-              'package-c': '1.0.0',
-            },
-            devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-a',
-
-            version: '1.0.0',
-          },
-        },
+        releaseType: 3,
+        workspace: workspaces['package-a'],
       },
       {
-        commits: [],
-        version: 1,
-        workspace: {
-          path: '/packages/package-b',
-          pkg: {
-            dependencies: { irrelavant: '1.0.0', 'package-e': '1.0.0' },
-            devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-b',
-
-            version: '1.0.0',
-          },
-        },
+        impactingCommits: [],
+        releaseType: 1,
+        workspace: workspaces['package-b'],
       },
       {
-        commits: [
+        impactingCommits: [
           {
             body: '',
             files: [{ filename: '/packages/package-c/package.json' }],
@@ -234,34 +291,16 @@ describe('analyser', () => {
             sha: '',
           },
         ],
-        version: 2,
-        workspace: {
-          path: '/packages/package-c',
-          pkg: {
-            dependencies: { irrelavant: '1.0.0', 'package-d': '1.0.0' },
-            devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-c',
-
-            version: '1.0.0',
-          },
-        },
+        releaseType: 2,
+        workspace: workspaces['package-c'],
       },
       {
-        commits: [],
-        version: 0,
-        workspace: {
-          path: '/packages/package-d',
-          pkg: {
-            dependencies: { irrelavant: '1.0.0' },
-            devDependencies: { irrelavantDev: '1.0.0' },
-            name: 'package-d',
-
-            version: '1.0.0',
-          },
-        },
+        impactingCommits: [],
+        releaseType: 0,
+        workspace: workspaces['package-d'],
       },
       {
-        commits: [
+        impactingCommits: [
           {
             body: '',
             files: [
@@ -273,51 +312,19 @@ describe('analyser', () => {
             sha: '',
           },
         ],
-        version: 1,
-        workspace: {
-          path: '/packages/package-e',
-          pkg: {
-            name: 'package-e',
-            version: '1.0.0',
-            dependencies: { irrelavant: '1.0.0', 'package-f': '1.0.0' },
-            devDependencies: { irrelavantDev: '1.0.0' },
-          },
-        },
+        releaseType: 1,
+        workspace: workspaces['package-e'],
       },
       {
-        commits: [],
-        version: 1,
-        workspace: {
-          path: '/packages/package-f',
-          pkg: {
-            name: 'package-f',
-            version: '1.0.0',
-            dependencies: {
-              irrelavant: '1.0.0',
-              'package-d': '1.0.0',
-              'package-g': '1.0.0',
-            },
-            devDependencies: { irrelavantDev: '1.0.0' },
-          },
-        },
+        impactingCommits: [],
+        releaseType: 1,
+        workspace: workspaces['package-f'],
       },
       {
-        commits: [],
-        version: 1,
-        workspace: {
-          path: '/packages/package-g',
-          pkg: {
-            name: 'package-g',
-            version: '1.0.0',
-            dependencies: {
-              irrelavant: '1.0.0',
-              'package-b': '1.0.0',
-              'package-d': '1.0.0',
-            },
-            devDependencies: { irrelavantDev: '1.0.0' },
-          },
-        },
+        impactingCommits: [],
+        releaseType: 1,
+        workspace: workspaces['package-g'],
       },
-    ])
+    ] as SemanthaRelease[])
   })
 })

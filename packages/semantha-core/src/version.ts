@@ -19,10 +19,8 @@ export function versionWorkspace(
   /* Calculate diff */
 
   const version = getNextVersion(release)
-  const dependencies = diffDependencies(release.workspace.pkg.dependencies)
-  const devDependencies = diffDependencies(
-    release.workspace.pkg.devDependencies,
-  )
+  const dependencies = diffDependencies({})
+  const devDependencies = {}
 
   return {
     version,
@@ -65,7 +63,7 @@ export function versionWorkspace(
  */
 export function getNextVersion(release: SemanthaRelease): string {
   /* Figure out release type */
-  const releaseType = getReleaseType(release.version)
+  const releaseType = getReleaseType(release.releaseType)
 
   if (releaseType === null) {
     return release.workspace.pkg.version
