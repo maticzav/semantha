@@ -1,6 +1,9 @@
 import { getCommitsSinceLastRelease, GithubRepository } from '../'
 
-import { createGithubRelease } from '../github'
+import {
+  createGithubRelease,
+  getLatestPackageVersionFromGitReleases,
+} from '../github'
 import { SemanthaRelease } from '../analyser'
 
 import * as version from '../version'
@@ -278,5 +281,156 @@ describe('github', () => {
       body: 'changelog',
       tag_name: `package-c@version`,
     })
+  })
+
+  test('getLatestPackageVersionFromGitReleases correctly reports error', async () => {
+    /* Mocks */
+    const github = {
+      repos: {
+        listReleases: jest.fn().mockReturnValue({ status: 400 }),
+      },
+    }
+
+    const repository: GithubRepository = {
+      owner: 'test-owner',
+      repo: 'test-repo',
+    }
+
+    const pkg: string = 'test-package'
+
+    /* Execution */
+
+    const res = await getLatestPackageVersionFromGitReleases(
+      github as any,
+      repository,
+      pkg,
+    )
+
+    /* Test */
+
+    expect(res).toEqual({
+      status: 'err',
+      message: 'There was a problem accessing Github.',
+    })
+  })
+
+  test('getLatestPackageVersionFromGitReleases recursively finds last version', async () => {
+    /* Mocks */
+    const github = {
+      repos: {
+        listReleases: jest
+          .fn()
+          .mockReturnValueOnce({
+            status: 200,
+            data: Array(50).fill({ tag_name: 'random' }),
+          })
+          .mockReturnValueOnce({
+            status: 200,
+            data: [
+              {
+                tag_name: 'test-package@1.0.0',
+              },
+              {
+                tag_name: 'other@1.0.0',
+              },
+              {
+                tag_name: 'another@1.0.0',
+              },
+              {
+                tag_name: 'test-package@1.0.2',
+              },
+            ],
+          }),
+      },
+    }
+
+    const repository: GithubRepository = {
+      owner: 'test-owner',
+      repo: 'test-repo',
+    }
+
+    const pkg: string = 'test-package'
+
+    /* Execution */
+
+    const res = await getLatestPackageVersionFromGitReleases(
+      github as any,
+      repository,
+      pkg,
+    )
+
+    /* Test */
+
+    expect(res).toEqual({
+      status: 'ok',
+      latestVersion: '1.0.2',
+    })
+    expect(github.repos.listReleases).toHaveBeenNthCalledWith(1, {
+      repo: repository.repo,
+      owner: repository.owner,
+      page: 0,
+      per_page: 50,
+    })
+    expect(github.repos.listReleases).toHaveBeenNthCalledWith(2, {
+      repo: repository.repo,
+      owner: repository.owner,
+      page: 1,
+      per_page: 50,
+    })
+    expect(github.repos.listReleases).toBeCalledTimes(2)
+  })
+
+  test('getLatestPackageVersionFromGitReleases correctly finds last version', async () => {
+    /* Mocks */
+    const github = {
+      repos: {
+        listReleases: jest.fn().mockReturnValueOnce({
+          status: 200,
+          data: [
+            {
+              tag_name: 'test-package@1.0.0',
+            },
+            {
+              tag_name: 'other@1.0.0',
+            },
+            {
+              tag_name: 'another@1.0.0',
+            },
+            {
+              tag_name: 'test-package@1.0.2',
+            },
+          ],
+        }),
+      },
+    }
+
+    const repository: GithubRepository = {
+      owner: 'test-owner',
+      repo: 'test-repo',
+    }
+
+    const pkg: string = 'test-package'
+
+    /* Execution */
+
+    const res = await getLatestPackageVersionFromGitReleases(
+      github as any,
+      repository,
+      pkg,
+    )
+
+    /* Test */
+
+    expect(res).toEqual({
+      status: 'ok',
+      latestVersion: '1.0.2',
+    })
+    expect(github.repos.listReleases).toBeCalledWith({
+      repo: repository.repo,
+      owner: repository.owner,
+      page: 0,
+      per_page: 50,
+    })
+    expect(github.repos.listReleases).toBeCalledTimes(1)
   })
 })

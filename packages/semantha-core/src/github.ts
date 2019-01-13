@@ -144,7 +144,7 @@ export async function createGithubRelease(
  * @param repository
  * @param pkg
  */
-export async function getLatestPackageVersionFromGitTags(
+export async function getLatestPackageVersionFromGitReleases(
   github: Octokit,
   repository: GithubRepository,
   pkg: string,
@@ -187,7 +187,12 @@ export async function getLatestPackageVersionFromGitTags(
     latestVersion === constants.firstVersion &&
     releases.data.length === releasesPerPage
   ) {
-    return getLatestPackageVersionFromGitTags(github, repository, pkg, page + 1)
+    return getLatestPackageVersionFromGitReleases(
+      github,
+      repository,
+      pkg,
+      page + 1,
+    )
   } else {
     return { status: 'ok', latestVersion: latestVersion }
   }
