@@ -1,7 +1,5 @@
-import * as cp from 'child_process'
+import execa from 'execa'
 import * as fs from 'fs'
-// import { sync as execa } from 'execa'
-import * as libnpmpublish from 'libnpmpublish'
 import _ from 'lodash'
 import * as path from 'path'
 import {
@@ -10,7 +8,7 @@ import {
   getNextVersion,
   Package,
 } from 'semantha-core'
-import * as tempy from 'tempy'
+import url from 'url'
 import { filterMap } from './utils'
 
 /**
@@ -33,36 +31,6 @@ export function writePackage(
   }
 }
 
-/**
- *
- * Packs package to tmpdir.
- *
- * @param pkgPath
- */
-export async function packPackage(
-  pkgPath: string,
-): Promise<
-  { status: 'ok'; path: string } | { status: 'err'; message: string }
-> {
-  return new Promise((resolve, reject) => {
-    try {
-      const tmpdir = tempy.directory()
-
-      cp.exec(`npm pack ${pkgPath}`, { cwd: tmpdir }, (err, stdout, stderr) => {
-        if (err) {
-          reject({ status: 'err', message: err.message })
-        } else {
-          resolve({ status: 'ok', path: tmpdir })
-        }
-      })
-
-      return
-    } catch (err) {
-      reject({ status: 'err', message: err.message })
-    }
-  })
-}
-
 export interface PublishOptions {
   registry: string
   token: string
@@ -83,11 +51,9 @@ export async function publish(
   | { status: 'err'; message: string }
 > {
   try {
-    /* Update package.json for package */
-    const pj = applyVersionsToPackage(release.workspace.pkg, releases)
-    const parsedPj = JSON.parse(pj)
+    /* Update package.json and override the old one */
 
-    /* Write pj to package */
+    const pj = applyVersionsToPackage(release.workspace.pkg, releases)
     const updated = writePackage(release.workspace.path, pj)
 
     if (updated.status === 'err') {
@@ -97,23 +63,25 @@ export async function publish(
       }
     }
 
-    /* Pack */
+    /* Authenticate */
 
-    const pack = await packPackage(release.workspace.path)
+    const authentication = auth(
+      release.workspace.path,
+      options.registry,
+      options.token,
+    )
 
-    if (pack.status === 'err') {
+    if (authentication.status === 'err') {
       return {
         status: 'err',
-        message: `Error packing ${release.workspace.pkg.name}: ${pack.message}`,
+        message: `Error authenticating: ${authentication.message}`,
       }
     }
 
     /* Publish */
 
-    const tar = fs.createReadStream(pack.path)
-
-    await libnpmpublish.publish(parsedPj, tar, {
-      token: options.token,
+    execa('npm', ['publish', '--registry', options.registry], {
+      cwd: release.workspace.path,
     })
 
     return { status: 'ok', release: release }
@@ -122,18 +90,18 @@ export async function publish(
   }
 
   /* Helper functions */
-  var url = require('url')
 
   /**
+   * Taken from npm/cli.
+   *
    * Maps a URL to an identifier.
    *
    * Name courtesy schiffertronix media LLC, a New Jersey corporation
    *
    * @param {String} uri The URL to be nerfed.
-   *
    * @returns {String} A nerfed URL.
    */
-  function toNerfDart(uri) {
+  function toNerfDart(uri: string): string {
     var parsed = url.parse(uri)
     delete parsed.protocol
     delete parsed.auth
@@ -142,6 +110,30 @@ export async function publish(
     delete parsed.hash
 
     return url.resolve(url.format(parsed), '.')
+  }
+
+  /**
+   *
+   * Composes a npmrc file with auth.
+   *
+   * @param pkgPath
+   * @param registry
+   * @param token
+   */
+  function auth(
+    pkgPath: string,
+    registry: string,
+    token: string,
+  ): { status: 'ok' } | { status: 'err'; message: string } {
+    const npmrcPath = path.resolve(pkgPath, '.npmrc')
+    try {
+      const npmrc = `${toNerfDart(registry)}:_authToken = ${token}`
+      fs.writeFileSync(npmrcPath, npmrc)
+
+      return { status: 'ok' }
+    } catch (err) {
+      return { status: 'err', message: err.message }
+    }
   }
 }
 

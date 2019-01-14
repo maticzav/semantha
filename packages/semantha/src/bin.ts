@@ -25,8 +25,10 @@ export async function main(cli: meow.Result): Promise<void> {
   manage(process.cwd(), { dryRun: cli.flags.dryRun }).then(res => {
     if (res.status === 'ok') {
       console.log(res.report)
+      process.exit(0)
     } else {
       console.warn(res.message)
+      process.exit(1)
     }
   })
 }

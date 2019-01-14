@@ -1,6 +1,6 @@
 {
   "name": "semantha",
-  "version": "0.0.0",
+  "version": "0.0.0-semantha",
   "main": "dist/index.js",
   "bin": {
     "semantha": "dist/bin.js"
@@ -21,7 +21,7 @@
     "lodash.isequal": "^4.5.0",
     "meow": "^5.0.0",
     "parse-github-url": "^1.0.2",
-    "semantha-core": "0.0.0",
+    "semantha-core": "0.0.0-semantha",
     "tempy": "^0.2.1"
   },
   "devDependencies": {

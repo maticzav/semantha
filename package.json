@@ -17,5 +17,8 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "semantha": "^0.0.0"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "semantha-core",
-  "version": "0.0.0",
+  "version": "0.0.0-semantha",
   "main": "dist/index.js",
   "repository": "https://github.com/maticzav/semantha.git",
   "scripts": {

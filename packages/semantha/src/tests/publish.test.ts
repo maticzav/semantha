@@ -101,3 +101,5 @@ describe('applyVersionToPackage', () => {
     expect(updated).toMatchSnapshot()
   })
 })
+
+describe('publish', () => {})
