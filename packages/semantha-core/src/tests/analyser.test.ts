@@ -8,6 +8,7 @@ describe('analyser', () => {
       'package-a': {
         path: '/packages/package-a',
         pkg: {
+          raw: '',
           name: 'package-a',
           version: '1.0.0',
           dependencies: [
@@ -37,6 +38,7 @@ describe('analyser', () => {
       'package-b': {
         path: '/packages/package-b',
         pkg: {
+          raw: '',
           name: 'package-b',
           version: '1.0.0',
           dependencies: [
@@ -61,6 +63,7 @@ describe('analyser', () => {
       'package-c': {
         path: '/packages/package-c',
         pkg: {
+          raw: '',
           name: 'package-c',
           version: '1.0.0',
           dependencies: [
@@ -85,6 +88,7 @@ describe('analyser', () => {
       'package-d': {
         path: '/packages/package-d',
         pkg: {
+          raw: '',
           name: 'package-d',
           version: '1.0.0',
           dependencies: [
@@ -104,6 +108,7 @@ describe('analyser', () => {
       'package-e': {
         path: '/packages/package-e',
         pkg: {
+          raw: '',
           name: 'package-e',
           version: '1.0.0',
           dependencies: [
@@ -128,6 +133,7 @@ describe('analyser', () => {
       'package-f': {
         path: '/packages/package-f',
         pkg: {
+          raw: '',
           name: 'package-f',
           version: '1.0.0',
           dependencies: [
@@ -157,6 +163,7 @@ describe('analyser', () => {
       'package-g': {
         path: '/packages/package-g',
         pkg: {
+          raw: '',
           name: 'package-g',
           version: '1.0.0',
           dependencies: [

@@ -258,6 +258,7 @@ describe('github', () => {
       workspace: {
         path: '/packages/package-c',
         pkg: {
+          raw: '',
           name: 'package-c',
           version: '1.0.0',
           dependencies: [],

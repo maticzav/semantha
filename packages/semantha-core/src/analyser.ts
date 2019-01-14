@@ -14,6 +14,7 @@ export type Dependency = {
 }
 
 export interface Package {
+  raw: string
   name: string
   version: string
   dependencies: Dependency[]
