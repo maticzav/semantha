@@ -192,7 +192,7 @@ describe('manager', () => {
 
     expect(res).toEqual({
       status: 'err',
-      message: `Configuration error: pass`,
+      message: `Error loading workspaces:\npass-2`,
     })
     expect(getConfigurationMock).toBeCalledTimes(1)
     expect(loadWorkspaceMock).toBeCalledTimes(2)
@@ -201,263 +201,195 @@ describe('manager', () => {
     expect(publishMock).toBeCalledTimes(0)
   })
 
-  // test('Manager correctly reports error in fetching commits', async () => {
-  //   process.env.GITHUB_TOKEN = 'github-token'
+  test('Manager correctly reports error in fetching commits', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+    process.env.NPM_TOKEN = 'npm-token'
 
-  //   /* Mocks */
+    /* Mocks */
 
-  //   const loadWorkspacesMock = jest
-  //     .spyOn(configuration, 'loadWorkspaces')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       config: {
-  //         repository: {
-  //           owner: 'maticzav',
-  //           repo: 'semantha',
-  //         },
-  //       },
-  //     })
-  //   const getCommitsSinceLastReleaseMock = jest
-  //     .spyOn(semantha, 'getCommitsSinceLastRelease')
-  //     .mockResolvedValue({
-  //       status: 'err',
-  //       message: 'pass',
-  //     })
-  //   const analyzeCommits = jest
-  //     .spyOn(semantha, 'analyzeCommits')
-  //     .mockImplementation(() => {})
-  //   const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
+    const getConfigurationMock = jest
+      .spyOn(configuration, 'getConfiguration')
+      .mockReturnValue({
+        status: 'ok',
+        config: {
+          workspaces: ['workspace-1', 'workspace-2'],
+          repository: 'repository',
+        },
+      })
+    const loadWorkspaceMock = jest
+      .spyOn(configuration, 'loadWorkspace')
+      .mockReturnValue({ status: 'ok' })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockReturnValue({ status: 'err', message: 'pass' })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockImplementation(() => {})
+    const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
-  //   /* Execution */
+    /* Execution */
 
-  //   const res = await manage('', { dryRun: false })
+    const res = await manage('', { dryRun: false })
 
-  //   /* Tests */
+    /* Tests */
 
-  //   expect(res).toEqual({
-  //     status: 'err',
-  //     message: 'pass',
-  //   })
-  //   expect(loadWorkspacesMock).toBeCalledTimes(1)
-  //   expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
-  //   expect(analyzeCommits).toBeCalledTimes(0)
-  //   expect(publishMock).toBeCalledTimes(0)
-  // })
+    expect(res).toEqual({
+      status: 'err',
+      message: `Error loading commits: pass`,
+    })
+    expect(getConfigurationMock).toBeCalledTimes(1)
+    expect(loadWorkspaceMock).toBeCalledTimes(2)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(0)
+    expect(publishMock).toBeCalledTimes(0)
+  })
 
-  // test('Manager correctly reports error in preparing workspaces', async () => {
-  //   process.env.GITHUB_TOKEN = 'github-token'
+  test('Manager returns correct analysis in dryrun', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+    process.env.NPM_TOKEN = 'npm-token'
 
-  //   /* Mocks */
+    /* Mocks */
 
-  //   const loadWorkspacesMock = jest
-  //     .spyOn(configuration, 'loadWorkspaces')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       config: {
-  //         repository: {
-  //           owner: 'maticzav',
-  //           repo: 'semantha',
-  //         },
-  //       },
-  //     })
-  //   const getCommitsSinceLastReleaseMock = jest
-  //     .spyOn(semantha, 'getCommitsSinceLastRelease')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       commits: [],
-  //     })
-  //   const analyzeCommits = jest
-  //     .spyOn(semantha, 'analyzeCommits')
-  //     .mockReturnValue(['release', 'release', 'release'])
-  //   const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
+    const getConfigurationMock = jest
+      .spyOn(configuration, 'getConfiguration')
+      .mockReturnValue({
+        status: 'ok',
+        config: {
+          workspaces: ['workspace-1', 'workspace-2'],
+          repository: 'repository',
+        },
+      })
+    const loadWorkspaceMock = jest
+      .spyOn(configuration, 'loadWorkspace')
+      .mockReturnValue({ status: 'ok', workspace: { pkg: 'package' } })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockReturnValue({ status: 'ok', commits: ['commit', 'commit'] })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockReturnValue(['pass', 'pass'])
+    const publishMock = jest.spyOn(npm, 'publish').mockImplementation(() => {})
 
-  //   /* Execution */
+    /* Execution */
 
-  //   const res = await manage('', { dryRun: false })
+    const res = await manage('', { dryRun: true })
 
-  //   /* Tests */
+    /* Tests */
 
-  //   expect(res).toEqual({
-  //     status: 'err',
-  //     message: 'err-1\nerr-2',
-  //   })
-  //   expect(loadWorkspacesMock).toBeCalledTimes(1)
-  //   expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
-  //   expect(analyzeCommits).toBeCalledTimes(1)
-  //   expect(publishMock).toBeCalledTimes(0)
-  // })
+    expect(res).toEqual({
+      status: 'ok',
+      report: {
+        configuration: {
+          workspaces: ['workspace-1', 'workspace-2'],
+          repository: 'repository',
+        },
+        releases: ['pass', 'pass'],
+        options: { dryRun: true },
+      },
+    })
+    expect(getConfigurationMock).toBeCalledTimes(1)
+    expect(loadWorkspaceMock).toBeCalledTimes(2)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(1)
+    expect(publishMock).toBeCalledTimes(0)
+  })
 
-  // test('Manager correctly reports error in publish workspaces', async () => {
-  //   process.env.GITHUB_TOKEN = 'github-token'
+  test('Manager reports publish errors', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+    process.env.NPM_TOKEN = 'npm-token'
 
-  //   /* Mocks */
+    /* Mocks */
 
-  //   const loadWorkspacesMock = jest
-  //     .spyOn(configuration, 'loadWorkspaces')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       config: {
-  //         repository: {
-  //           owner: 'maticzav',
-  //           repo: 'semantha',
-  //         },
-  //       },
-  //     })
-  //   const getCommitsSinceLastReleaseMock = jest
-  //     .spyOn(semantha, 'getCommitsSinceLastRelease')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       commits: [],
-  //     })
-  //   const analyzeCommits = jest
-  //     .spyOn(semantha, 'analyzeCommits')
-  //     .mockReturnValue(['release', 'release', 'release'])
-  //   const publishMock = jest
-  //     .spyOn(npm, 'publish')
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
-  //     .mockReturnValueOnce({
-  //       status: 'err',
-  //       message: 'err-1',
-  //     })
-  //     .mockReturnValueOnce({
-  //       status: 'err',
-  //       message: 'err-2',
-  //     })
+    const getConfigurationMock = jest
+      .spyOn(configuration, 'getConfiguration')
+      .mockReturnValue({
+        status: 'ok',
+        config: {
+          workspaces: ['workspace-1', 'workspace-2'],
+          repository: 'repository',
+        },
+      })
+    const loadWorkspaceMock = jest
+      .spyOn(configuration, 'loadWorkspace')
+      .mockReturnValue({ status: 'ok', workspace: { pkg: 'package' } })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockReturnValue({ status: 'ok', commits: ['commit', 'commit'] })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockReturnValue(['pass', 'pass'])
+    const publishMock = jest
+      .spyOn(npm, 'publish')
+      .mockReturnValueOnce({ status: 'pass', message: 'pass-1' })
+      .mockReturnValueOnce({ status: 'err', message: 'pass-2' })
 
-  //   /* Execution */
+    /* Execution */
 
-  //   const res = await manage('', { dryRun: false })
+    const res = await manage('', { dryRun: false })
 
-  //   /* Tests */
+    /* Tests */
 
-  //   expect(res).toEqual({
-  //     status: 'err',
-  //     message: 'err-1\nerr-2',
-  //   })
-  //   expect(loadWorkspacesMock).toBeCalledTimes(1)
-  //   expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
-  //   expect(analyzeCommits).toBeCalledTimes(1)
-  //   expect(publishMock).toBeCalledTimes(3)
-  // })
+    expect(res).toEqual({
+      status: 'err',
+      message: 'Error publishing packages:\npass-1\npass-2',
+    })
+    expect(getConfigurationMock).toBeCalledTimes(1)
+    expect(loadWorkspaceMock).toBeCalledTimes(2)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(1)
+    expect(publishMock).toBeCalledTimes(2)
+  })
 
-  // test('Manager correctly performs a dryrun in workspace publishing', async () => {
-  //   process.env.GITHUB_TOKEN = 'github-token'
+  test('Manager correctly performs release', async () => {
+    process.env.GITHUB_TOKEN = 'github-token'
+    process.env.NPM_TOKEN = 'npm-token'
 
-  //   /* Mocks */
+    /* Mocks */
 
-  //   const loadWorkspacesMock = jest
-  //     .spyOn(configuration, 'loadWorkspaces')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       config: {
-  //         repository: {
-  //           owner: 'maticzav',
-  //           repo: 'semantha',
-  //         },
-  //       },
-  //     })
-  //   const getCommitsSinceLastReleaseMock = jest
-  //     .spyOn(semantha, 'getCommitsSinceLastRelease')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       commits: [],
-  //     })
-  //   const analyzeCommits = jest
-  //     .spyOn(semantha, 'analyzeCommits')
-  //     .mockReturnValue(['release', 'release', 'release'])
-  //   const publishMock = jest
-  //     .spyOn(npm, 'publish')
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
+    const getConfigurationMock = jest
+      .spyOn(configuration, 'getConfiguration')
+      .mockReturnValue({
+        status: 'ok',
+        config: {
+          workspaces: ['workspace-1', 'workspace-2'],
+          repository: 'repository',
+        },
+      })
+    const loadWorkspaceMock = jest
+      .spyOn(configuration, 'loadWorkspace')
+      .mockReturnValue({ status: 'ok', workspace: { pkg: 'package' } })
+    const getCommitsSinceLastReleaseMock = jest
+      .spyOn(semantha, 'getCommitsSinceLastRelease')
+      .mockReturnValue({ status: 'ok', commits: ['commit', 'commit'] })
+    const analyzeCommits = jest
+      .spyOn(semantha, 'analyzeCommits')
+      .mockReturnValue(['pass', 'pass'])
+    const publishMock = jest
+      .spyOn(npm, 'publish')
+      .mockReturnValueOnce({ status: 'ok', message: 'pass-1' })
+      .mockReturnValueOnce({ status: 'ok', message: 'pass-2' })
 
-  //   /* Execution */
+    /* Execution */
 
-  //   const res = await manage('', { dryRun: true })
+    const res = await manage('', { dryRun: false })
 
-  //   /* Tests */
+    /* Tests */
 
-  //   expect(res).toEqual({
-  //     status: 'ok',
-  //     report: {
-  //       configuration: { repository: { owner: 'maticzav', repo: 'semantha' } },
-  //       releases: ['release', 'release', 'release'],
-  //     },
-  //   })
-  //   expect(loadWorkspacesMock).toBeCalledTimes(1)
-  //   expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
-  //   expect(analyzeCommits).toBeCalledTimes(1)
-  //   expect(publishMock).toBeCalledTimes(0)
-  // })
-
-  // test('Manager correctly manages workspace publishing', async () => {
-  //   process.env.GITHUB_TOKEN = 'github-token'
-
-  //   /* Mocks */
-
-  //   const loadWorkspacesMock = jest
-  //     .spyOn(configuration, 'loadWorkspaces')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       config: {
-  //         repository: {
-  //           owner: 'maticzav',
-  //           repo: 'semantha',
-  //         },
-  //       },
-  //     })
-  //   const getCommitsSinceLastReleaseMock = jest
-  //     .spyOn(semantha, 'getCommitsSinceLastRelease')
-  //     .mockResolvedValue({
-  //       status: 'ok',
-  //       commits: [],
-  //     })
-  //   const analyzeCommits = jest
-  //     .spyOn(semantha, 'analyzeCommits')
-  //     .mockReturnValue(['release', 'release', 'release'])
-  //   const publishMock = jest
-  //     .spyOn(npm, 'publish')
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
-  //     .mockReturnValueOnce({
-  //       status: 'ok',
-  //       release: 'release',
-  //     })
-
-  //   /* Execution */
-
-  //   const res = await manage('', { dryRun: false })
-
-  //   /* Tests */
-
-  //   expect(res).toEqual({
-  //     status: 'ok',
-  //     report: {
-  //       configuration: { repository: { owner: 'maticzav', repo: 'semantha' } },
-  //       releases: ['release', 'release', 'release'],
-  //     },
-  //   })
-  //   expect(loadWorkspacesMock).toBeCalledTimes(1)
-  //   expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
-  //   expect(analyzeCommits).toBeCalledTimes(1)
-  //   expect(publishMock).toBeCalledTimes(3)
-  // })
+    expect(res).toEqual({
+      status: 'ok',
+      report: {
+        configuration: {
+          workspaces: ['workspace-1', 'workspace-2'],
+          repository: 'repository',
+        },
+        releases: ['pass', 'pass'],
+        options: { dryRun: false },
+      },
+    })
+    expect(getConfigurationMock).toBeCalledTimes(1)
+    expect(loadWorkspaceMock).toBeCalledTimes(2)
+    expect(getCommitsSinceLastReleaseMock).toBeCalledTimes(1)
+    expect(analyzeCommits).toBeCalledTimes(1)
+    expect(publishMock).toBeCalledTimes(2)
+  })
 })

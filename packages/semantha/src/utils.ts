@@ -34,9 +34,11 @@ export function filterMap<T, Y>(
  *
  * Merges multiple errors into one.
  *
+ * @param header
  * @param xs
  */
 export function mergeErrors<T>(
+  header: string,
   xs: ({ status: 'ok' } & T | { status: 'err'; message: string })[],
 ): { status: 'err'; message: string } {
   const message = filterMap(x => {
@@ -47,5 +49,5 @@ export function mergeErrors<T>(
     }
   }, xs).join('\n')
 
-  return { status: 'err', message: message }
+  return { status: 'err', message: `${header}\n${message}` }
 }

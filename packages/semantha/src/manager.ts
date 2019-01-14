@@ -89,7 +89,7 @@ export async function manage(
   )
 
   if (packages.some(pkg => pkg.status !== 'ok')) {
-    return mergeErrors(packages)
+    return mergeErrors('Error loading workspaces:', packages)
   }
 
   /** Fetch commits from last release */
@@ -144,7 +144,7 @@ export async function manage(
   )
 
   if (publishedPackages.some(pkg => pkg.status !== 'ok')) {
-    return mergeErrors(publishedPackages)
+    return mergeErrors('Error publishing packages:', publishedPackages)
   }
 
   /* Return report */
