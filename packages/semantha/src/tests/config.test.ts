@@ -1,6 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { getConfiguration, loadPackage } from '..'
+import { GithubRepository } from 'semantha-core'
+import { loadWorkspace } from '../config'
 
 describe('get configuration', () => {
   test('getConfiguration reports missing repository configuration', async () => {
@@ -153,5 +155,150 @@ describe('load package', () => {
         ],
       },
     })
+  })
+})
+
+describe('load workspace', () => {
+  test('loadWorkspace reports load package error', async () => {
+    /* Mocks */
+    const github = {
+      repos: {
+        listReleases: jest.fn().mockReturnValueOnce({
+          status: 200,
+          data: [
+            {
+              tag_name: 'test-package@1.0.0',
+            },
+            {
+              tag_name: 'other@1.0.0',
+            },
+            {
+              tag_name: 'another@1.0.0',
+            },
+            {
+              tag_name: 'test-package@1.0.2',
+            },
+          ],
+        }),
+      },
+    }
+
+    const repository: GithubRepository = {
+      owner: 'test-owner',
+      repo: 'test-repo',
+    }
+
+    const workspace = path.resolve(__dirname, './__fixtures__/config/invalid/')
+
+    /* Execution */
+
+    const res = await loadWorkspace(github as any, repository, workspace)
+
+    /* Tests */
+
+    expect(res).toEqual({
+      status: 'err',
+      message: 'Missing package definition.',
+    })
+    expect(github.repos.listReleases).toBeCalledTimes(0)
+  })
+
+  test('loadWorkspace correctly reports version fetch error', async () => {
+    /* Mocks */
+    const github = {
+      repos: {
+        listReleases: jest.fn().mockReturnValueOnce({
+          status: 400,
+        }),
+      },
+    }
+
+    const repository: GithubRepository = {
+      owner: 'test-owner',
+      repo: 'test-repo',
+    }
+
+    const workspace = path.resolve(__dirname, './__fixtures__/packages/valid')
+
+    /* Execution */
+
+    const res = await loadWorkspace(github as any, repository, workspace)
+
+    /* Tests */
+
+    expect(res).toEqual({
+      status: 'err',
+      message: 'There was a problem accessing Github.',
+    })
+    expect(github.repos.listReleases).toBeCalledTimes(1)
+  })
+
+  test('loadWorkspace correctly loads workspace', async () => {
+    /* Mocks */
+    const github = {
+      repos: {
+        listReleases: jest.fn().mockReturnValueOnce({
+          status: 200,
+          data: [
+            {
+              tag_name: 'package@1.0.0',
+            },
+            {
+              tag_name: 'other@1.0.0',
+            },
+            {
+              tag_name: 'another@1.0.0',
+            },
+            {
+              tag_name: 'package@1.0.2',
+            },
+          ],
+        }),
+      },
+    }
+
+    const repository: GithubRepository = {
+      owner: 'test-owner',
+      repo: 'test-repo',
+    }
+
+    const workspace = path.resolve(__dirname, './__fixtures__/packages/valid')
+
+    /* Execution */
+
+    const res = await loadWorkspace(github as any, repository, workspace)
+
+    /* Tests */
+
+    expect(res).toEqual({
+      status: 'ok',
+      workspace: {
+        path: workspace,
+        pkg: {
+          raw: fs.readFileSync(`${workspace}/package.json`, 'utf-8'),
+          name: 'package',
+          version: '1.0.2',
+          dependencies: [
+            {
+              name: 'test-dependency-a',
+              type: 'dependencies',
+              version: '0.0.0-semantha',
+            },
+            { name: 'irrelevant', type: 'dependencies', version: '2.0.0' },
+            {
+              name: 'test-dependency-b',
+              type: 'devDependencies',
+              version: '0.0.0-semantha',
+            },
+            {
+              name: 'test-dependency-c',
+              type: 'devDependencies',
+              version: '0.0.0-semantha',
+            },
+          ],
+        },
+      },
+    })
+    expect(github.repos.listReleases).toBeCalledTimes(1)
   })
 })
