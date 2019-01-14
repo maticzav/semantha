@@ -1,80 +1,71 @@
+import * as cp from 'child_process'
 import * as fs from 'fs'
 // import { sync as execa } from 'execa'
-// import * as libnpmpublish from 'libnpmpublish'
+import * as libnpmpublish from 'libnpmpublish'
 import _ from 'lodash'
 import * as path from 'path'
-import { SemanthaRelease, Dependency, getNextVersion } from 'semantha-core'
+import {
+  SemanthaRelease,
+  Dependency,
+  getNextVersion,
+  Package,
+} from 'semantha-core'
+import * as tempy from 'tempy'
 import { filterMap } from './utils'
 
-export interface Package {
-  raw: string
-  name: string
-  version: string
-  dependencies: Dependency[]
+/**
+ *
+ * Write package.json to package.
+ *
+ * @param pkgPath
+ * @param pkg
+ */
+export function writePackage(
+  pkgPath: string,
+  pkg: string,
+): { status: 'ok' } | { status: 'err'; message: string } {
+  const pjPath = path.resolve(pkgPath, 'package.json')
+  try {
+    fs.writeFileSync(pjPath, pkg)
+    return { status: 'ok' }
+  } catch (err) {
+    return { status: 'err', message: err.message }
+  }
 }
 
 /**
  *
- * Loads package definition from path.
+ * Packs package to tmpdir.
  *
  * @param pkgPath
  */
-export async function loadPackage(
+export async function packPackage(
   pkgPath: string,
 ): Promise<
-  { status: 'ok'; pkg: Package } | { status: 'err'; message: string }
+  { status: 'ok'; path: string } | { status: 'err'; message: string }
 > {
-  try {
-    const configPath = path.resolve(pkgPath, 'package.json')
-    const raw = fs.readFileSync(configPath, 'utf-8')
+  return new Promise((resolve, reject) => {
+    try {
+      const tmpdir = tempy.directory()
 
-    const parsed = JSON.parse(raw)
+      cp.exec(`npm pack ${pkgPath}`, { cwd: tmpdir }, (err, stdout, stderr) => {
+        if (err) {
+          reject({ status: 'err', message: err.message })
+        } else {
+          resolve({ status: 'ok', path: tmpdir })
+        }
+      })
 
-    if (!parsed.name || !parsed.version) {
-      return { status: 'err', message: 'Missing package definition.' }
+      return
+    } catch (err) {
+      reject({ status: 'err', message: err.message })
     }
-
-    const depTypes: Dependency['type'][] = [
-      'dependencies',
-      'devDependencies',
-      'optionalDependencies',
-      'peerDependencies',
-      'bundleDependencies',
-    ]
-
-    const dependencies = depTypes.reduce<Dependency[]>((acc, type) => {
-      if (parsed[type]) {
-        const typeDeps: Dependency[] = Object.keys(parsed[type]).map(dep => ({
-          name: dep,
-          type: type,
-          version: parsed[type][dep],
-        }))
-
-        return [...acc, ...typeDeps]
-      } else {
-        return acc
-      }
-    }, [])
-
-    return {
-      status: 'ok',
-      pkg: {
-        raw: raw,
-        name: parsed.name,
-        version: parsed.version,
-        dependencies: dependencies,
-      },
-    }
-  } catch (err) {
-    return {
-      status: 'err',
-      message: `Couldn't load package: ${err.message}`,
-    }
-  }
+  })
 }
 
 export interface PublishOptions {
   registry: string
+  token: string
 }
 
 /**
@@ -83,14 +74,47 @@ export interface PublishOptions {
  *
  * @param release
  */
-export function publish(
+export async function publish(
   release: SemanthaRelease,
+  releases: SemanthaRelease[],
   options: PublishOptions,
-):
+): Promise<
   | { status: 'ok'; release: SemanthaRelease }
-  | { status: 'err'; message: string } {
+  | { status: 'err'; message: string }
+> {
   try {
-    // const pkgJson = require(release.workspace.path)
+    /* Update package.json for package */
+    const pj = applyVersionsToPackage(release.workspace.pkg, releases)
+    const parsedPj = JSON.parse(pj)
+
+    /* Write pj to package */
+    const updated = writePackage(release.workspace.path, pj)
+
+    if (updated.status === 'err') {
+      return {
+        status: 'err',
+        message: `Error writing package.json: ${updated.message}`,
+      }
+    }
+
+    /* Pack */
+
+    const pack = await packPackage(release.workspace.path)
+
+    if (pack.status === 'err') {
+      return {
+        status: 'err',
+        message: `Error packing ${release.workspace.pkg.name}: ${pack.message}`,
+      }
+    }
+
+    /* Publish */
+
+    const tar = fs.createReadStream(pack.path)
+
+    await libnpmpublish.publish(parsedPj, tar, {
+      token: options.token,
+    })
 
     return { status: 'ok', release: release }
   } catch (err) {

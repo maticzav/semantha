@@ -1,14 +1,13 @@
 import Octokit from '@octokit/rest'
 import {
-  SemanthaRelease,
-  SemanthaRule,
   getCommitsSinceLastRelease,
   analyzeCommits,
-  getLatestPackageVersionFromGitReleases,
+  SemanthaRelease,
+  SemanthaRule,
   Workspace,
 } from 'semantha-core'
 import { Configuration, getConfiguration, loadWorkspace } from './config'
-import { publish, loadPackage, Package } from './npm'
+import { publish } from './publish'
 import { mergeErrors } from './utils'
 
 export interface Options {
@@ -32,7 +31,11 @@ export interface Report {
  * release rules define how commits should affect releases.
  */
 
-const releaseRules: SemanthaRule[] = []
+const releaseRules: SemanthaRule[] = [
+  { regex: new RegExp('fix:'), releaseType: { type: 'patch' } },
+  { regex: new RegExp('feat:'), releaseType: { type: 'minor' } },
+  { regex: new RegExp('perf:'), releaseType: { type: 'major' } },
+]
 
 /**
  *
@@ -131,8 +134,13 @@ export async function manage(
 
   /* Publish */
 
-  const publishedPackages = releases.map(release =>
-    publish(release, { registry: '' }),
+  const publishedPackages = await Promise.all(
+    releases.map(release =>
+      publish(release, releases, {
+        registry: 'npm',
+        token: process.env.NPM_TOKEN!,
+      }),
+    ),
   )
 
   if (publishedPackages.some(pkg => pkg.status !== 'ok')) {

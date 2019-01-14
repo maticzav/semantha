@@ -6,10 +6,10 @@ import * as path from 'path'
 import {
   GithubRepository,
   Workspace,
+  Package,
+  Dependency,
   getLatestPackageVersionFromGitReleases,
 } from 'semantha-core'
-
-import { loadPackage } from './npm'
 
 export interface Configuration {
   repository: GithubRepository
@@ -84,6 +84,75 @@ export async function getConfiguration(
   }
 }
 
+/**
+ *
+ * Loads package definition from path.
+ *
+ * @param pkgPath
+ */
+export async function loadPackage(
+  pkgPath: string,
+): Promise<
+  { status: 'ok'; pkg: Package } | { status: 'err'; message: string }
+> {
+  try {
+    const configPath = path.resolve(pkgPath, 'package.json')
+    const raw = fs.readFileSync(configPath, 'utf-8')
+
+    const parsed = JSON.parse(raw)
+
+    if (!parsed.name || !parsed.version) {
+      return { status: 'err', message: 'Missing package definition.' }
+    }
+
+    const depTypes: Dependency['type'][] = [
+      'dependencies',
+      'devDependencies',
+      'optionalDependencies',
+      'peerDependencies',
+      'bundleDependencies',
+    ]
+
+    const dependencies = depTypes.reduce<Dependency[]>((acc, type) => {
+      if (parsed[type]) {
+        const typeDeps: Dependency[] = Object.keys(parsed[type]).map(dep => ({
+          name: dep,
+          type: type,
+          version: parsed[type][dep],
+        }))
+
+        return [...acc, ...typeDeps]
+      } else {
+        return acc
+      }
+    }, [])
+
+    return {
+      status: 'ok',
+      pkg: {
+        raw: raw,
+        name: parsed.name,
+        version: parsed.version,
+        dependencies: dependencies,
+      },
+    }
+  } catch (err) {
+    return {
+      status: 'err',
+      message: `Couldn't load package: ${err.message}`,
+    }
+  }
+}
+
+/**
+ *
+ * Loads workspace with latest found version from git-releases,
+ * parsed package.json file.
+ *
+ * @param github
+ * @param repository
+ * @param workspace
+ */
 export async function loadWorkspace(
   github: Octokit,
   repository: GithubRepository,
@@ -91,6 +160,7 @@ export async function loadWorkspace(
 ): Promise<
   { status: 'ok'; workspace: Workspace } | { status: 'err'; message: string }
 > {
+  /* Parse package */
   const pkg = await loadPackage(workspace)
 
   if (pkg.status === 'err') {
@@ -100,6 +170,7 @@ export async function loadWorkspace(
     }
   }
 
+  /* Fetch latest version */
   const latestVersion = await getLatestPackageVersionFromGitReleases(
     github,
     repository,
@@ -113,11 +184,14 @@ export async function loadWorkspace(
     }
   }
 
+  /* Create workspace */
+
   return {
     status: 'ok',
     workspace: {
       path: workspace,
       pkg: {
+        raw: pkg.pkg.raw,
         name: pkg.pkg.name,
         version: latestVersion.latestVersion,
         dependencies: pkg.pkg.dependencies,

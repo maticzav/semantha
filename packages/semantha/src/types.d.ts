@@ -1,4 +1,6 @@
 declare module 'libnpmpublish' {
+  import { ReadStream } from 'fs'
+
   interface Options {
     npmVersion?: string
     token?: string
@@ -6,7 +8,7 @@ declare module 'libnpmpublish' {
 
   export function publish(
     pkg: object,
-    tar: Buffer,
+    tar: ReadStream,
     options?: Options,
   ): Promise<void>
   export function unpublish(spec: string, options?: Options): Promise<void>
