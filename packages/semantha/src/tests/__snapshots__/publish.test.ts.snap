@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`publish applyVersionToPackage correctly updates package.json 1`] = `
+"{
+  \\"devDependencies\\": {
+    \\"test-dependency-b\\": \\"1.0.0\\",
+    \\"test-dependency-c\\": \\"1.0.1-alpha.0\\"
+  },
+  \\"name\\": \\"package\\",
+  \\"scripts\\": {},
+  \\"version\\": \\"2.0.0\\",
+  \\"dependencies\\": {
+    \\"test-dependency-a\\": \\"2.0.0\\",
+    \\"irrelevant\\": \\"2.0.0\\"
+  }
+}
+"
+`;

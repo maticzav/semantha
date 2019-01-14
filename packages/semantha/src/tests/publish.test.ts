@@ -1,11 +1,38 @@
+import * as fs from 'fs'
 import * as path from 'path'
 import { SemanthaRelease } from 'semantha-core'
 
 import { loadPackage } from '../config'
-import { applyVersionsToPackage } from '../publish'
+import { applyVersionsToPackage, writePackage } from '../publish'
 
-describe('npm', () => {
-  test('applyVersionToPackage correctly updates package.json', async () => {
+describe('write package', () => {
+  test('reports error', async () => {
+    const pkgPath = path.resolve(__dirname, './__fixtures__/packages/random/')
+    const res = writePackage(pkgPath, 'hey')
+
+    const pjPath = path.resolve(pkgPath, 'package.json')
+
+    expect(res).toEqual({
+      status: 'err',
+      message: `ENOENT: no such file or directory, open '${pjPath}'`,
+    })
+  })
+
+  test('correctly updates package.json', async () => {
+    const pkgPath = path.resolve(__dirname, './__fixtures__/packages/write/')
+    const res = writePackage(pkgPath, '{ "name": "package" }')
+
+    expect(res).toEqual({
+      status: 'ok',
+    })
+    expect(
+      fs.readFileSync(path.resolve(pkgPath, 'package.json'), 'utf-8'),
+    ).toBe('{ "name": "package" }')
+  })
+})
+
+describe('applyVersionToPackage', () => {
+  test('correctly updates package.json', async () => {
     const pkgPath = path.resolve(__dirname, './__fixtures__/packages/valid/')
     const pkg = await loadPackage(pkgPath)
 
