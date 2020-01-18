@@ -33,7 +33,7 @@
     "@types/get-stream": "3.0.1",
     "@types/globby": "8.0.0",
     "@types/got": "9.4.0",
-    "@types/jest": "23.3.13",
+    "@types/jest": "24.9.0",
     "@types/lodash.isequal": "4.5.3",
     "@types/meow": "5.0.0",
     "@types/p-retry": "2.0.0",
