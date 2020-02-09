@@ -10,7 +10,7 @@
     "release": "semantha"
   },
   "devDependencies": {
-    "codecov": "3.1.0",
+    "codecov": "3.6.5",
     "husky": "1.3.1",
     "prettier": "1.16.0",
     "pretty-quick": "1.10.0"
