@@ -102,10 +102,10 @@
   dependencies:
     delay "*"
 
-"@types/dockerode@2.5.10":
-  version "2.5.10"
-  resolved "https://registry.yarnpkg.com/@types/dockerode/-/dockerode-2.5.10.tgz#837379703c8140fdb704460b6cfee4621a5412a3"
-  integrity sha512-Aiy0iYuWudPOHNc69LYHCfvjzvJ0KaRIkM9o6unMQSOh7rp7/KydUVb5KRGRSoRk9V7uWv9IssEi/ahF4yaOkA==
+"@types/dockerode@2.5.34":
+  version "2.5.34"
+  resolved "https://registry.yarnpkg.com/@types/dockerode/-/dockerode-2.5.34.tgz#9adb884f7cc6c012a6eb4b2ad794cc5d01439959"
+  integrity sha512-LcbLGcvcBwBAvjH9UrUI+4qotY+A5WCer5r43DR5XHv2ZIEByNXFdPLo1XxR+v/BjkGjlggW8qUiXuVEhqfkpA==
   dependencies:
     "@types/node" "*"
 
