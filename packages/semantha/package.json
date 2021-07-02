@@ -36,7 +36,7 @@
     "@types/jest": "23.3.14",
     "@types/lodash.isequal": "4.5.5",
     "@types/meow": "5.0.0",
-    "@types/p-retry": "2.0.0",
+    "@types/p-retry": "3.0.0",
     "@types/parse-github-url": "1.0.0",
     "@types/tempy": "0.2.0",
     "delay": "4.4.1",
