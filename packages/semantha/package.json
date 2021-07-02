@@ -39,7 +39,7 @@
     "@types/p-retry": "2.0.0",
     "@types/parse-github-url": "1.0.0",
     "@types/tempy": "0.2.0",
-    "delay": "4.4.1",
+    "delay": "5.0.0",
     "dockerode": "2.5.8",
     "fs-extra": "7.0.1",
     "get-stream": "4.1.0",
