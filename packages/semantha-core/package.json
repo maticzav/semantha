@@ -11,7 +11,7 @@
     "prepublish": "npm-run-all build"
   },
   "dependencies": {
-    "@octokit/rest": "^16.1.0",
+    "@octokit/rest": "^18.0.0",
     "semver": "^5.6.0"
   },
   "devDependencies": {
