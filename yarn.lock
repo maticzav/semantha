@@ -264,10 +264,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.60.tgz#35f3d6213daed95da7f0f73e75bcc6980e90597b"
   integrity sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==
 
-"@types/p-retry@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/p-retry/-/p-retry-2.0.0.tgz#8d5e3ef380dde8a0b46d254a68861c7ec6ca2d80"
-  integrity sha512-UQnV/R3AWC7ZGZQjAjr+SAwkWHiDYZxzFHqFFW36K17f8q4frldjFH4DO1WHMVngJ8f1OfKSpgmcGnWZakVbyw==
+"@types/p-retry@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/p-retry/-/p-retry-3.0.0.tgz#d0bbf6ebe7fffadebbdd02058c38d39bf85901d9"
+  integrity sha512-whxkmt2onv2KJ8FrKtdzUiLvPns99e7JBk47bKq5OOnhugZrx9+QOp3s4+9W8jv1jfzXxLGbEN+yrT7HjRoijQ==
   dependencies:
     "@types/retry" "*"
 
