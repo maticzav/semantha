@@ -42,7 +42,7 @@
     "delay": "4.4.1",
     "dockerode": "2.5.8",
     "fs-extra": "7.0.1",
-    "get-stream": "4.1.0",
+    "get-stream": "6.0.1",
     "got": "9.6.0",
     "jest": "23.6.0",
     "npm-run-all": "4.1.5",
